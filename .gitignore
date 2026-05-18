@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.tmp/
+
+# Local agent/internal operations files; keep the public theme repo user-facing.
+AGENTS.md
+docs/open-source-checklist.md
+docs/qa/statusshow-patch-layer-probes.md
+
+.env
+.env.*
+!.env.example
+public/config.json
+public/server-order.json
+*.local
+.omx/

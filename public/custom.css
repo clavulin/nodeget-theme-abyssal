@@ -1,0 +1,3881 @@
+/* --------------------------------------------------------------------------
+   NodeGet StatusShow local patch layer map
+
+   This file intentionally stays in public/ so Abyssal deployments can preserve
+   upstream src/** while carrying the accepted theme visual language.
+   Keep visual changes in the narrowest matching section below, and only use the
+   final correction area for temporary/urgent overrides before folding them back
+   into their owning section.
+
+   00. Fonts and bridge utility classes
+   01. Abyssal archive theme tokens, backdrop, header, filters, cards and table
+   02. Light-mode token overrides
+   03. Detail drawer dossier / TUI treatment
+   04. Accepted late corrections and compatibility overrides
+   -------------------------------------------------------------------------- */
+
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+.nodeget-system-logo-hidden {
+  display: none !important;
+}
+
+.nodeget-front-flag {
+  width: 1.25rem !important;
+  height: 0.875rem !important;
+  flex: none;
+  border-radius: 1px;
+  object-fit: cover;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.16);
+}
+
+main table.nodeget-flag-name-table th:nth-child(3),
+main table.nodeget-flag-name-table td:nth-child(3) {
+  display: none;
+}
+
+.nodeget-map-view-hidden,
+.nodeget-footer-release-control-hidden {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card .flex.flex-wrap.gap-1\.5 {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  html.nodeget-detail-drawer-pending body div.fixed.inset-0.z-50.bg-background.overflow-y-auto:not(.nodeget-detail-drawer-root) {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .nodeget-detail-drawer-root {
+    --nodeget-detail-width: min(48rem, calc(100vw - 2rem));
+    --nodeget-detail-head-h: 4rem;
+    background: transparent !important;
+    overflow: hidden !important;
+  }
+
+  .nodeget-detail-drawer-root::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--background) / 0.68);
+    backdrop-filter: blur(8px);
+  }
+
+  .nodeget-detail-drawer-header,
+  .nodeget-detail-drawer-body {
+    width: var(--nodeget-detail-width) !important;
+    max-width: none !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    background: hsl(var(--background));
+    border-left: 1px solid hsl(var(--border));
+    box-shadow: -24px 0 60px hsl(var(--background) / 0.45);
+  }
+
+  .nodeget-detail-drawer-header {
+    position: absolute !important;
+    inset: 0 0 auto auto !important;
+    z-index: 2 !important;
+    border-bottom: 1px solid hsl(var(--border));
+    border-top-left-radius: 1rem;
+    animation: nodeget-detail-slide-in 180ms ease-out;
+  }
+
+  .nodeget-detail-drawer-body {
+    position: absolute !important;
+    inset: var(--nodeget-detail-head-h) 0 0 auto !important;
+    overflow-y: auto;
+    border-bottom-left-radius: 1rem;
+    animation: nodeget-detail-slide-in 180ms ease-out;
+  }
+
+  .nodeget-detail-drawer-close {
+    order: -10;
+  }
+}
+
+@keyframes nodeget-detail-slide-in {
+  from {
+    transform: translateX(2rem);
+    opacity: 0.7;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Abyssal archive skin for the local NodeGet StatusShow deployment.
+   Kept in the public patch layer per AGENTS.md: no upstream src/** edits.
+   -------------------------------------------------------------------------- */
+
+html.nodeget-abyssal-theme {
+  color-scheme: dark;
+  --background: 180 75% 6%;
+  --foreground: 31 100% 90%;
+  --card: 180 58% 8%;
+  --card-foreground: 31 100% 90%;
+  --popover: 180 58% 7%;
+  --popover-foreground: 31 100% 90%;
+  --primary: 31 100% 90%;
+  --primary-foreground: 180 75% 6%;
+  --secondary: 180 40% 12%;
+  --secondary-foreground: 31 82% 84%;
+  --muted: 180 34% 12%;
+  --muted-foreground: 31 36% 67%;
+  --accent: 40 100% 61%;
+  --accent-foreground: 180 75% 6%;
+  --destructive: 356 96% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 32 38% 27%;
+  --input: 32 38% 27%;
+  --ring: 40 100% 61%;
+  --radius: 0.35rem;
+  --nodeget-archive-bg: #041c1c;
+  --nodeget-archive-bg-2: #061f1f;
+  --nodeget-archive-panel: #031818;
+  --nodeget-archive-panel-strong: #052120;
+  --nodeget-archive-panel-hover: #062625;
+  --nodeget-archive-grain-wash: rgba(255, 230, 203, 0.01);
+  --nodeget-archive-text: #ffe6cb;
+  --nodeget-archive-muted: rgba(255, 230, 203, 0.62);
+  --nodeget-archive-faint: rgba(255, 230, 203, 0.34);
+  --nodeget-archive-border: rgba(255, 230, 203, 0.16);
+  --nodeget-archive-border-strong: rgba(255, 230, 203, 0.28);
+  --nodeget-archive-amber: #dca64b;
+  --nodeget-archive-green: #8fbf95;
+  --nodeget-archive-red: #c06b62;
+  --nodeget-detail-header-h: 2.36rem;
+  --nodeget-detail-header-h-mobile: 2.32rem;
+  --nodeget-detail-gutter-x: 1.5rem;
+  --nodeget-detail-mobile-gutter-x: 0.72rem;
+  --nodeget-detail-record-mobile-pad-top: 0.54rem;
+  --nodeget-detail-dark-header-bg: #020f0f;
+  --nodeget-detail-light-header-bg: #fffef9;
+  --nodeget-detail-light-divider: rgba(0, 79, 115, 0.16);
+  --nodeget-detail-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --nodeget-abyssal-display-font: ui-serif, Georgia, serif;
+  --nodeget-abyssal-label-font: "Barlow Condensed", "Rajdhani", "Teko", system-ui, sans-serif;
+  --nodeget-abyssal-mono-font: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--nodeget-archive-bg);
+}
+
+html.nodeget-abyssal-theme body {
+  min-height: 100vh;
+  background-color: #020f0f;
+  background-image:
+    linear-gradient(var(--nodeget-archive-grain-wash), var(--nodeget-archive-grain-wash)),
+    url("./assets/grain.png"),
+    url("./assets/specks.png"),
+    linear-gradient(90deg, rgba(2, 15, 15, 0.14), rgba(4, 28, 28, 0.06) 48%, rgba(2, 15, 15, 0.12)),
+    url("./assets/veil-top.png"),
+    radial-gradient(circle at 62% 26%, rgba(255, 230, 203, 0.04), transparent 32rem),
+    url("./assets/veil-mid.png"),
+    url("./assets/veil-deep.png"),
+    linear-gradient(180deg, rgba(2, 15, 15, 0.38), rgba(4, 28, 28, 0.72)),
+    linear-gradient(90deg, rgba(2, 15, 15, 0.68), rgba(4, 28, 28, 0.16) 52%, rgba(2, 15, 15, 0.86));
+  background-position: center, left top, left top, center, calc(100% + 1rem) 5rem, 62% 26%, -5rem 52rem, calc(100% + 2rem) 98rem, center top, center;
+  background-size: auto, 256px 256px, 512px 512px, cover, min(82rem, 112vw) auto, cover, min(68rem, 94vw) auto, min(74rem, 102vw) auto, cover, cover;
+  background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-attachment: scroll;
+  background-blend-mode: normal, normal, screen, normal, soft-light, screen, screen, screen, normal, normal;
+  color: var(--nodeget-archive-text);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    "JetBrains Mono",
+    Menlo,
+    Consolas,
+    "PingFang SC",
+    "Microsoft YaHei",
+    monospace;
+  letter-spacing: 0.01em;
+}
+
+html.nodeget-abyssal-theme body::after {
+  content: none;
+}
+
+html.nodeget-abyssal-theme .bg-soft {
+  /* The real themed backdrop now lives on body. Hide the stock fixed layer to avoid duplicate paints while scrolling. */
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .bg-soft::after {
+  content: none;
+}
+
+html.nodeget-abyssal-theme header {
+  border: 0 !important;
+  background-color: rgba(2, 15, 15, 0.58) !important;
+  background-image: linear-gradient(180deg, rgba(255, 230, 203, 0.026), rgba(255, 230, 203, 0.006)) !important;
+  background-size: auto !important;
+  background-repeat: repeat !important;
+  box-shadow: none;
+  -webkit-backdrop-filter: saturate(0.82) blur(2px) !important;
+  backdrop-filter: saturate(0.82) blur(2px) !important;
+}
+
+html.nodeget-abyssal-theme header > div:first-child {
+  display: grid !important;
+  grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
+  align-items: stretch !important;
+  gap: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+html.nodeget-abyssal-theme header a[href="./"] {
+  min-height: 2.62rem;
+  justify-content: flex-start;
+  padding: 0.34rem 0.95rem;
+  border: 0;
+  background: transparent;
+  color: var(--nodeget-archive-text);
+  font-family: var(--nodeget-abyssal-display-font);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.96rem;
+  font-weight: 400;
+  line-height: 1;
+  box-shadow: none;
+}
+
+html.nodeget-abyssal-theme header a[href="./"]::after {
+  content: none;
+  display: none;
+}
+
+html.nodeget-abyssal-theme header a[href="./"] .nodeget-abyssal-original-logo {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-brand-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.78rem;
+  height: 1.78rem;
+  flex: 0 0 1.78rem;
+  margin-right: 0.08rem;
+  color: var(--nodeget-archive-amber);
+  opacity: 0.96;
+  filter: drop-shadow(0 0 0.32rem rgba(134, 215, 201, 0.16));
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-brand-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0.17rem;
+  border: 1px solid rgba(255, 230, 203, 0.14);
+  border-radius: 50%;
+  opacity: 0.78;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-brand-icon svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-brand-icon path,
+html.nodeget-abyssal-theme .nodeget-abyssal-brand-icon circle {
+  vector-effect: non-scaling-stroke;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-ring,
+html.nodeget-abyssal-theme .nodeget-abyssal-mast,
+html.nodeget-abyssal-theme .nodeget-abyssal-beam {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-ring {
+  stroke: rgba(134, 215, 201, 0.84);
+  stroke-width: 1.34;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-ring-inner {
+  stroke: rgba(255, 230, 203, 0.52);
+  stroke-width: 0.96;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-mast {
+  stroke: rgba(255, 230, 203, 0.95);
+  stroke-width: 1.52;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-beam {
+  stroke: rgba(134, 215, 201, 0.32);
+  stroke-width: 0.66;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-core {
+  fill: rgba(255, 230, 203, 0.18);
+  stroke: rgba(255, 230, 203, 0.95);
+  stroke-width: 1.08;
+}
+
+html.nodeget-abyssal-theme .nodeget-abyssal-spark {
+  fill: rgba(134, 215, 201, 0.92);
+  stroke: none;
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-brand-icon {
+  color: #173f42;
+  filter: none;
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-brand-icon::before {
+  border-color: rgba(23, 63, 66, 0.14);
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-ring {
+  stroke: rgba(23, 63, 66, 0.62);
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-ring-inner,
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-beam {
+  stroke: rgba(116, 91, 58, 0.46);
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-mast {
+  stroke: rgba(23, 63, 66, 0.86);
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-core {
+  fill: rgba(116, 91, 58, 0.11);
+  stroke: rgba(116, 91, 58, 0.8);
+}
+
+html:not(.dark).nodeget-abyssal-theme .nodeget-abyssal-spark {
+  fill: rgba(23, 63, 66, 0.78);
+}
+
+html.nodeget-abyssal-theme header img {
+  border-radius: 2px !important;
+  filter: sepia(0.45) saturate(0.7) brightness(1.1);
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions {
+  position: relative;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end;
+  gap: 0.28rem !important;
+  min-width: 0;
+  width: 100%;
+  padding: 0.26rem 0.72rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions::before {
+  content: none;
+  display: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > *,
+html.nodeget-abyssal-theme .nodeget-topbar-actions > div > button,
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button {
+  min-height: 2.02rem;
+  height: 2.02rem;
+  align-items: center !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > * {
+  margin-left: 0;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="搜索"] {
+  display: inline-flex !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label^="切换"],
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button[title*="模式"] {
+  display: inline-flex !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > div,
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button,
+html.nodeget-abyssal-theme header .relative.inline-grid {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme input,
+html.nodeget-abyssal-theme select,
+html.nodeget-abyssal-theme textarea,
+html.nodeget-abyssal-theme button {
+  font-family: inherit;
+}
+
+html.nodeget-abyssal-theme input,
+html.nodeget-abyssal-theme [role="combobox"] {
+  border-color: var(--nodeget-archive-border) !important;
+  background-color: var(--nodeget-archive-panel) !important;
+  background-image: linear-gradient(rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.018)) !important;
+  background-size: auto !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(4, 28, 28, 0.82),
+    inset 0 0 0 2px rgba(255, 230, 203, 0.022);
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme input::placeholder {
+  color: rgba(255, 230, 203, 0.72) !important;
+  opacity: 1;
+}
+
+html.nodeget-abyssal-theme button,
+html.nodeget-abyssal-theme a[role="button"] {
+  border-color: var(--nodeget-archive-border) !important;
+  border-radius: 2px !important;
+  letter-spacing: 0.08em;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme header input,
+html.nodeget-abyssal-theme header [role="combobox"],
+html.nodeget-abyssal-theme header button,
+html.nodeget-abyssal-theme header a[role="button"] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: rgba(255, 230, 203, 0.8) !important;
+  font-family: var(--nodeget-abyssal-label-font);
+  font-size: 0.58rem;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme header input {
+  min-width: 0;
+  width: 100%;
+  border: 0 !important;
+  box-shadow: none !important;
+  letter-spacing: 0.08em;
+}
+
+html.nodeget-abyssal-theme header .relative.inline-grid {
+  padding: 0 !important;
+}
+
+html.nodeget-abyssal-theme header .relative.inline-grid > div[aria-hidden] {
+  top: 0 !important;
+  right: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: calc(100% / 3) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: rgba(255, 230, 203, 0.04) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme header .relative.inline-grid.nodeget-view-toggle-no-map > div[aria-hidden] {
+  width: calc(100% / 2) !important;
+}
+
+html.nodeget-abyssal-theme header .nodeget-sort-control-hidden,
+html.nodeget-abyssal-theme header .nodeget-map-view-hidden {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme header .relative.inline-grid button {
+  min-width: 2.02rem;
+  height: 2.02rem;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions > button {
+  width: 2.02rem;
+  min-width: 2.02rem;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+html.nodeget-abyssal-theme header button:hover,
+html.nodeget-abyssal-theme header a[role="button"]:hover,
+html.nodeget-abyssal-theme header [role="combobox"]:hover {
+  border-color: var(--nodeget-archive-border-strong) !important;
+  background-color: rgba(255, 230, 203, 0.04) !important;
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme main.nodeget-archive-main {
+  position: relative;
+  padding-top: 0.38rem !important;
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(7.4rem, 1fr));
+  gap: 0 !important;
+  padding: 1.42rem 0.62rem 0.62rem;
+  border: 0;
+  border-top: 1px solid var(--nodeget-archive-border);
+  border-bottom: 1px solid var(--nodeget-archive-border);
+  border-radius: 0;
+  background-color: transparent;
+  background-image: none;
+  background-size: auto;
+  box-shadow: none;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap::before {
+  position: absolute;
+  top: 0.38rem;
+  left: 0.62rem;
+  color: var(--nodeget-archive-faint);
+  font-size: 0.61rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap::before {
+  content: "REGION INDEX";
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap > button {
+  justify-content: flex-start;
+  min-height: 1.72rem;
+  border: 0 !important;
+  border-left: 1px solid rgba(255, 230, 203, 0.1) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 230, 203, 0.7) !important;
+  font-family: var(--nodeget-abyssal-label-font);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-align: left;
+  text-transform: uppercase;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap > button:hover {
+  border-left-color: var(--nodeget-archive-border-strong) !important;
+  color: var(--nodeget-archive-text) !important;
+  background-color: rgba(255, 230, 203, 0.035) !important;
+}
+
+html.nodeget-abyssal-theme main > .flex.flex-wrap > button.bg-primary,
+html.nodeget-abyssal-theme main > .flex.flex-wrap > button[class*="bg-primary"] {
+  border-left-color: rgba(255, 230, 203, 0.5) !important;
+  background-color: rgba(255, 230, 203, 0.055) !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow: inset 0 -1px 0 rgba(255, 230, 203, 0.08) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-grid {
+  gap: 1px !important;
+  padding: 0;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card::before {
+  content: "●  ●  ●   SESSION #" attr(data-nodeget-archive-index);
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.54rem;
+  display: flex;
+  align-items: center;
+  padding-inline: 0.72rem 0.85rem;
+  border-top: 1px solid rgba(255, 230, 203, 0.12);
+  border-bottom: 1px solid rgba(255, 230, 203, 0.12);
+  color: var(--nodeget-archive-faint);
+  font-family: var(--nodeget-abyssal-label-font);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card::after {
+  content: none;
+  display: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div,
+html.nodeget-abyssal-theme .card-soft,
+html.nodeget-abyssal-theme [class*="bg-card"] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: rgba(3, 24, 24, 0.92) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 230, 203, 0.012), transparent),
+    repeating-linear-gradient(0deg, rgba(255, 230, 203, 0.024) 0 1px, transparent 1px 1.72rem) !important;
+  background-size: auto, auto !important;
+  background-repeat: repeat, repeat !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div {
+  position: relative;
+  min-height: 100%;
+  padding: 0 !important;
+  padding-top: 1.54rem !important;
+  gap: 0 !important;
+  overflow: hidden;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card:hover > div {
+  border-color: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-size: auto, auto !important;
+  transform: none;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card span.font-semibold,
+html.nodeget-abyssal-theme main td.font-medium,
+html.nodeget-abyssal-theme .nodeget-archive-heading {
+  color: var(--nodeget-archive-text) !important;
+  letter-spacing: 0.055em;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card span.font-semibold {
+  padding-right: 2.4rem;
+  text-transform: uppercase;
+  font-family: ui-serif, Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.085em;
+  line-height: 1.05;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-header,
+html.nodeget-abyssal-theme .nodeget-card-meta-row,
+html.nodeget-abyssal-theme .nodeget-card-metric-grid,
+html.nodeget-abyssal-theme .nodeget-card-footer-row,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div {
+  padding-inline: 0.9rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-header {
+  min-height: 3.08rem;
+  padding-block: 0.62rem 0.42rem;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-meta-row {
+  padding-top: 0.32rem;
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-abyssal-mono-font);
+  font-size: 0.58rem !important;
+  letter-spacing: 0.07em;
+  line-height: 1.18;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid {
+  display: grid;
+  gap: 0 !important;
+  padding-block: 0.32rem 0.38rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div {
+  position: relative;
+  display: grid;
+  gap: 0.18rem;
+  padding-block: 0.18rem;
+  padding-left: 0.72rem;
+  border-top: 0 !important;
+  line-height: 1.05;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div > div:first-child,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div > div:first-child {
+  line-height: 1.05;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div > div:nth-child(2),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div > div:nth-child(2) {
+  margin-top: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div > div:nth-child(3),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div > div:nth-child(3) {
+  margin-top: 0.08rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div::before,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div::before {
+  content: "";
+  position: absolute;
+  left: 0.08rem;
+  top: 0.36rem;
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: rgba(255, 189, 56, 0.62);
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div:first-child,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div:first-child {
+  border-top: 0;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid span:first-child,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) span:first-child {
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-abyssal-label-font);
+  font-size: 0.56rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid span:last-child,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) span:last-child {
+  color: var(--nodeget-archive-text) !important;
+  font-family: var(--nodeget-abyssal-mono-font);
+  font-size: 0.66rem;
+  line-height: 1.15;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-meta-row,
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div > div:nth-child(3),
+html.nodeget-abyssal-theme .nodeget-card-footer-row,
+html.nodeget-abyssal-theme .nodeget-card-footer-row *,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(2),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div > div:nth-child(3),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) * {
+  font-family: var(--nodeget-abyssal-label-font) !important;
+  font-size: 0.56rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.16em !important;
+  line-height: 1.08 !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-metric-grid > div > div:nth-child(3),
+html.nodeget-abyssal-theme .nodeget-card-footer-row,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div > div:nth-child(3),
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) {
+  color: var(--nodeget-archive-faint) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-footer-row {
+  margin-top: auto;
+  padding-block: 0.46rem !important;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(5) {
+  padding-block: 0 0.5rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div [class*="border-t"],
+html.nodeget-abyssal-theme .nodeget-archive-card > div [class*="border-b"],
+html.nodeget-abyssal-theme .nodeget-archive-card > div [style*="border-top"],
+html.nodeget-abyssal-theme .nodeget-archive-card > div [style*="border-bottom"] {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card svg {
+  color: var(--nodeget-archive-faint);
+  stroke-width: 1.6;
+}
+
+html.nodeget-abyssal-theme .text-muted-foreground,
+html.nodeget-abyssal-theme [class*="text-muted-foreground"] {
+  color: var(--nodeget-archive-muted) !important;
+}
+
+html.nodeget-abyssal-theme .font-mono,
+html.nodeget-abyssal-theme [class*="font-mono"] {
+  font-variant-numeric: tabular-nums;
+}
+
+html.nodeget-abyssal-theme [role="progressbar"],
+html.nodeget-abyssal-theme [class*="bg-secondary"] {
+  overflow: hidden;
+  height: 0.14rem !important;
+  border: 0;
+  border-radius: 0 !important;
+  background: rgba(255, 230, 203, 0.018) !important;
+}
+
+html.nodeget-abyssal-theme [role="progressbar"] > div {
+  background: rgba(255, 230, 203, 0.72) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card [role="progressbar"],
+html.nodeget-abyssal-theme .nodeget-archive-card [class*="bg-secondary"] {
+  position: relative !important;
+  height: 0.84rem !important;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.055) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    ) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card [role="progressbar"]::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(var(--nodeget-progress-width, 0px), 100%);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.82) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+  pointer-events: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card [role="progressbar"] > div {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html.nodeget-abyssal-theme [class*="bg-green"],
+html.nodeget-abyssal-theme [class*="bg-emerald"] {
+  background-color: var(--nodeget-archive-green) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme [class*="bg-red"],
+html.nodeget-abyssal-theme [class*="bg-rose"],
+html.nodeget-abyssal-theme [class*="bg-destructive"] {
+  background-color: var(--nodeget-archive-red) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme [class*="bg-amber"] {
+  background-color: var(--nodeget-archive-amber) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme [class*="ring-emerald"],
+html.nodeget-abyssal-theme [class*="ring-rose"],
+html.nodeget-abyssal-theme [class*="ring-amber"] {
+  --tw-ring-color: rgba(255, 230, 203, 0.14) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-front-flag {
+  border: 1px solid rgba(255, 230, 203, 0.24);
+  border-radius: 1px;
+  filter: saturate(0.78) contrast(1.05);
+  box-shadow: 0 0 0 1px rgba(4, 28, 28, 0.7);
+}
+
+html.nodeget-abyssal-theme [class*="border-dashed"] {
+  border-color: rgba(255, 230, 203, 0.18) !important;
+}
+
+html.nodeget-abyssal-theme [class*="rounded"] {
+  border-radius: 2px;
+}
+
+html.nodeget-abyssal-theme [class*="Badge"],
+html.nodeget-abyssal-theme [class*="badge"],
+html.nodeget-abyssal-theme .nodeget-archive-card [class*="border"] {
+  border-color: rgba(255, 230, 203, 0.18);
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card [class*="text-\\[10px\\]"],
+html.nodeget-abyssal-theme .nodeget-archive-card [class*="Badge"],
+html.nodeget-abyssal-theme .nodeget-archive-card [class*="badge"] {
+  color: var(--nodeget-archive-faint) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .card-soft:has(table.nodeget-archive-table) {
+  border: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-repeat: repeat !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  padding: 0 !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--nodeget-archive-text);
+  font-family: var(--nodeget-abyssal-mono-font);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table thead {
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table th {
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-abyssal-mono-font);
+  font-size: 0.61rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td,
+html.nodeget-abyssal-theme table.nodeget-archive-table th {
+  height: 1.74rem;
+  padding: 0.26rem 0.42rem !important;
+  border-bottom: 1px solid rgba(255, 230, 203, 0.072) !important;
+  vertical-align: middle;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table thead th {
+  height: 1.48rem;
+  padding-top: 0.18rem !important;
+  padding-bottom: 0.18rem !important;
+  border-bottom-color: rgba(255, 230, 203, 0.12) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table th:first-child,
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child {
+  width: 4.2rem;
+  min-width: 4.2rem;
+  padding-left: 0.72rem !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table th:first-child {
+  color: rgba(255, 230, 203, 0.28) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--nodeget-archive-faint) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child::before {
+  content: ">" attr(data-nodeget-row-index);
+  min-width: 2.15rem;
+  color: rgba(220, 166, 75, 0.82);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(2) {
+  min-width: 12rem;
+  color: var(--nodeget-archive-text) !important;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(4) [class*="border"],
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(4) [class*="Badge"],
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(4) [class*="badge"] {
+  border-color: rgba(220, 166, 75, 0.28) !important;
+  background: rgba(220, 166, 75, 0.055) !important;
+  color: rgba(255, 230, 203, 0.78) !important;
+  font-family: var(--nodeget-abyssal-mono-font);
+  letter-spacing: 0.1em;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(n + 5) {
+  color: var(--nodeget-archive-muted) !important;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(8),
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(9),
+html.nodeget-abyssal-theme table.nodeget-archive-table td:nth-child(10) {
+  color: rgba(255, 230, 203, 0.66) !important;
+  font-size: 0.68rem;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table .nodeget-front-flag,
+html.nodeget-abyssal-theme table.nodeget-archive-table img[src*="flagcdn.com/"] {
+  width: 1.05rem !important;
+  height: 0.72rem !important;
+  border-color: rgba(255, 230, 203, 0.2) !important;
+  opacity: 0.86;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child [class*="bg-green"],
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child [class*="bg-emerald"] {
+  background-color: var(--nodeget-archive-green) !important;
+  box-shadow: 0 0 0 1px rgba(143, 191, 149, 0.2), 0 0 0.4rem rgba(143, 191, 149, 0.16) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child [class*="bg-red"],
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child [class*="bg-rose"],
+html.nodeget-abyssal-theme table.nodeget-archive-table td:first-child [class*="bg-destructive"] {
+  background-color: var(--nodeget-archive-red) !important;
+  box-shadow: 0 0 0 1px rgba(192, 107, 98, 0.2), 0 0 0.4rem rgba(192, 107, 98, 0.14) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table [role="progressbar"] {
+  position: relative !important;
+  width: 3.7rem;
+  height: 0.58rem !important;
+  min-width: 3.7rem;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.055) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    ) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table [role="progressbar"]::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(var(--nodeget-progress-width, 0px), 100%);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.82) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+  pointer-events: none;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table [role="progressbar"] > div {
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table [role="progressbar"] + span {
+  width: 2.8rem !important;
+  color: rgba(255, 230, 203, 0.68) !important;
+  font-size: 0.64rem;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table tbody tr {
+  background: transparent !important;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table tbody tr:hover {
+  background: rgba(220, 166, 75, 0.12) !important;
+  color: var(--nodeget-archive-text);
+  outline: 1px solid rgba(220, 166, 75, 0.24);
+  outline-offset: -1px;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table tbody tr:hover td {
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme table.nodeget-archive-table tbody tr[aria-selected="true"],
+html.nodeget-abyssal-theme table.nodeget-archive-table tbody tr[data-state="selected"] {
+  background: rgba(255, 230, 203, 0.12) !important;
+  outline: 1px solid rgba(255, 230, 203, 0.32);
+  outline-offset: -1px;
+}
+
+html.nodeget-abyssal-theme [role="alert"] {
+  border-color: rgba(255, 230, 203, 0.3) !important;
+  border-radius: 2px !important;
+  background-color: rgba(4, 28, 28, 0.96) !important;
+  background-image:
+    linear-gradient(rgba(255, 230, 203, 0.022), rgba(255, 230, 203, 0.022)),
+    linear-gradient(180deg, rgba(220, 166, 75, 0.08), rgba(255, 230, 203, 0.035)) !important;
+  background-size: auto, auto !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(4, 28, 28, 0.72),
+    inset 0 0 0 2px rgba(255, 230, 203, 0.03) !important;
+}
+
+html.nodeget-abyssal-theme [role="alert"]::before {
+  content: "SYSTEM NOTICE";
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--nodeget-archive-amber);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme main > div.py-20,
+html.nodeget-abyssal-theme main > div.py-24 {
+  min-height: 18rem;
+  border: 1px dashed rgba(255, 230, 203, 0.16);
+  background-color: rgba(255, 230, 203, 0.025);
+  background-image: linear-gradient(rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.018));
+  background-size: auto;
+  color: var(--nodeget-archive-muted) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-root::before {
+  background: rgba(4, 28, 28, 0.74) !important;
+  backdrop-filter: blur(12px) saturate(95%);
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-root {
+  --nodeget-detail-head-h: 4.25rem;
+}
+
+html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-root {
+  background: #020f0f !important;
+}
+
+html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-root::before {
+  background-color: #020f0f !important;
+  background-image:
+    linear-gradient(var(--nodeget-archive-grain-wash), var(--nodeget-archive-grain-wash)),
+    url("./assets/grain.png"),
+    radial-gradient(circle at 62% 26%, rgba(255, 230, 203, 0.052), transparent 32rem),
+    linear-gradient(180deg, rgba(2, 15, 15, 0.42), rgba(4, 28, 28, 0.76)),
+    linear-gradient(90deg, rgba(2, 15, 15, 0.7), rgba(4, 28, 28, 0.16) 52%, rgba(2, 15, 15, 0.82)) !important;
+  background-position: center, left top, 62% 26%, center top, center !important;
+  background-size: auto, 256px 256px, cover, cover, cover !important;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat !important;
+  background-blend-mode: normal, normal, screen, normal, normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-header,
+html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-body {
+  background-color: rgba(2, 15, 15, 0.34) !important;
+  background-image: linear-gradient(180deg, rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.004)) !important;
+  backdrop-filter: none !important;
+}
+
+@media (min-width: 768px) {
+  html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-root {
+    background: transparent !important;
+  }
+
+  html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-root::before {
+    background: transparent !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    pointer-events: none;
+  }
+
+  html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-header,
+  html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-body {
+    background-color: #020f0f !important;
+  }
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body {
+  min-height: 4.25rem;
+  padding-top: 1.35rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header::before {
+  content: "●  ●  ●   NODE DETAIL CONSOLE";
+  position: absolute;
+  top: 0.48rem;
+  left: 1rem;
+  right: 4rem;
+  overflow: hidden;
+  color: var(--nodeget-archive-faint);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header h1,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header h2,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header [class*="font-semibold"] {
+  color: var(--nodeget-archive-text) !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body {
+  padding-top: 1rem !important;
+  font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .card-soft,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="bg-card"],
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body section,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body article {
+  border-color: rgba(255, 230, 203, 0.14) !important;
+  border-radius: 2px !important;
+  background-color: rgba(3, 24, 24, 0.98) !important;
+  background-image:
+    linear-gradient(rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.018)),
+    repeating-linear-gradient(0deg, rgba(255, 230, 203, 0.024) 0 1px, transparent 1px 1.65rem) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(4, 28, 28, 0.72),
+    inset 0 0 0 2px rgba(255, 230, 203, 0.018) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h1,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h2,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h3,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h4 {
+  color: var(--nodeget-archive-text) !important;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h1::before,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h2::before,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h3::before,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body h4::before {
+  content: "> ";
+  color: var(--nodeget-archive-amber);
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body dl,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body table,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="grid"] {
+  color: var(--nodeget-archive-muted) !important;
+  font-size: 0.76rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [role="progressbar"] {
+  height: 0.42rem !important;
+}
+
+html.nodeget-abyssal-theme footer {
+  color: var(--nodeget-archive-faint) !important;
+  border-top: 1px solid var(--nodeget-archive-border);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+html.nodeget-abyssal-theme footer .nodeget-archive-footer-bar {
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0.35rem;
+}
+
+html.nodeget-abyssal-theme footer .nodeget-archive-footer-bar > a:first-child {
+  margin-right: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-footer-version {
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--nodeget-archive-muted);
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note a {
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note a:not(:hover) {
+  color: inherit;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note::before {
+  content: "//";
+  color: var(--nodeget-archive-amber);
+  opacity: 0.72;
+}
+
+html.nodeget-abyssal-theme ::selection {
+  background: var(--nodeget-archive-text);
+  color: var(--nodeget-archive-bg);
+}
+
+html.nodeget-abyssal-theme * {
+  scrollbar-color: rgba(255, 230, 203, 0.42) transparent;
+}
+
+html.nodeget-abyssal-theme *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 230, 203, 0.28);
+  border-radius: 0;
+}
+
+@media (max-width: 900px) {
+  html.nodeget-abyssal-theme header > div:first-child {
+    grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
+    row-gap: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions {
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  html.nodeget-abyssal-theme footer .nodeget-archive-footer-bar {
+    justify-content: center;
+    text-align: center;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note {
+    flex-basis: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-footer-theme-note::before {
+    content: none;
+    display: none;
+  }
+
+  html.nodeget-abyssal-theme body {
+    background-image:
+      linear-gradient(var(--nodeget-archive-grain-wash), var(--nodeget-archive-grain-wash)),
+      url("./assets/grain.png"),
+      url("./assets/specks.png"),
+      linear-gradient(90deg, rgba(2, 15, 15, 0.1), rgba(4, 28, 28, 0.03) 50%, rgba(2, 15, 15, 0.09)),
+      url("./assets/veil-top.png"),
+      radial-gradient(circle at 56% 18%, rgba(255, 230, 203, 0.022), transparent 17rem),
+      url("./assets/veil-mid-r180.png"),
+      url("./assets/veil-top-r90.png"),
+      url("./assets/veil-mid.png"),
+      url("./assets/veil-deep-flipx.png"),
+      url("./assets/veil-mid-flipx.png"),
+      url("./assets/veil-top.png"),
+      url("./assets/veil-mid-r180.png"),
+      url("./assets/veil-deep-r180.png"),
+      url("./assets/veil-top-r180.png"),
+      url("./assets/veil-mid.png"),
+      url("./assets/veil-deep-flipx.png"),
+      url("./assets/veil-mid-r180.png"),
+      url("./assets/veil-top-r90.png"),
+      url("./assets/veil-deep.png"),
+      url("./assets/veil-mid-flipx.png"),
+      url("./assets/veil-top-r180.png"),
+      linear-gradient(180deg, rgba(2, 15, 15, 0.5), rgba(4, 28, 28, 0.67)),
+      linear-gradient(90deg, rgba(2, 15, 15, 0.75), rgba(4, 28, 28, 0.16) 56%, rgba(2, 15, 15, 0.82));
+    background-position: center, left top, left top, center, calc(100% + 12rem) 2rem, 56% 18%, -9rem 30rem, 44% 58rem, calc(100% + 10rem) 88rem, -10rem 118rem, 50% 148rem, calc(100% + 11rem) 178rem, -8rem 210rem, 54% 242rem, calc(100% + 12rem) 274rem, -9rem 306rem, 48% 340rem, calc(100% + 12rem) 374rem, -8rem 410rem, 55% 446rem, calc(100% + 12rem) 482rem, -9rem 520rem, center top, center;
+    background-size: auto, 192px 192px, 512px 512px, cover, auto 46vh, cover, 96vw auto, 100vw auto, 92vw auto, auto 58vh, 100vw auto, 96vw auto, auto 58vh, 100vw auto, 96vw auto, auto 58vh, 100vw auto, 96vw auto, auto 58vh, 98vw auto, 100vw auto, cover, cover;
+    background-repeat: repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    background-blend-mode: normal, normal, screen, normal, soft-light, screen, screen, screen, soft-light, screen, screen, soft-light, screen, screen, soft-light, screen, screen, soft-light, screen, screen, soft-light, screen, normal, normal;
+    background-attachment: scroll;
+  }
+
+  html.nodeget-abyssal-theme header > div:first-child {
+    grid-template-columns: minmax(7.5rem, max-content) minmax(0, 1fr);
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+    padding-inline: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme header a[href="./"] {
+    max-width: none;
+    min-height: 2.45rem;
+    padding-inline: 0.75rem;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions {
+    width: 100%;
+    margin-left: 0;
+    padding: 0.26rem 0.45rem !important;
+  }
+
+  html.nodeget-abyssal-theme header a[href="./"]::after {
+    content: none;
+    display: none;
+  }
+
+  html.nodeget-abyssal-theme main.nodeget-archive-main::before {
+    letter-spacing: 0.13em;
+  }
+
+  html.nodeget-abyssal-theme main > .flex.flex-wrap {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-card::before {
+    height: 1.44rem;
+    padding-inline: 0.62rem;
+    font-size: 0.46rem;
+    letter-spacing: 0.1em;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-card > div {
+    padding-top: 1.44rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-card span.font-semibold {
+    letter-spacing: 0.035em;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   Nous-inspired light mode: white paper + blue ink, separate from the dark
+   terminal/archive mode above. Triggered by the existing theme toggle when the
+   root html no longer has .dark.
+   -------------------------------------------------------------------------- */
+html.nodeget-abyssal-theme:not(.dark) {
+  color-scheme: light;
+  --background: 45 52% 98%;
+  --foreground: 199 100% 28%;
+  --card: 45 52% 98%;
+  --card-foreground: 199 100% 28%;
+  --popover: 45 52% 98%;
+  --popover-foreground: 199 100% 28%;
+  --primary: 199 100% 33%;
+  --primary-foreground: 45 52% 98%;
+  --secondary: 198 68% 93%;
+  --secondary-foreground: 199 100% 28%;
+  --muted: 198 54% 94%;
+  --muted-foreground: 199 72% 39%;
+  --accent: 199 86% 43%;
+  --accent-foreground: 45 52% 98%;
+  --destructive: 356 74% 42%;
+  --destructive-foreground: 45 52% 98%;
+  --border: 199 58% 66%;
+  --input: 199 58% 66%;
+  --ring: 199 86% 43%;
+  --nodeget-archive-bg: #fbfbf6;
+  --nodeget-archive-bg-2: #f4f7f3;
+  --nodeget-archive-panel: #fbfbf6;
+  --nodeget-archive-panel-strong: #f6f9f4;
+  --nodeget-archive-panel-hover: #edf5f3;
+  --nodeget-archive-grain-wash: rgba(0, 79, 115, 0.018);
+  --nodeget-archive-text: #004f73;
+  --nodeget-archive-muted: rgba(0, 79, 115, 0.68);
+  --nodeget-archive-faint: rgba(0, 79, 115, 0.43);
+  --nodeget-archive-border: rgba(0, 79, 115, 0.28);
+  --nodeget-archive-border-strong: rgba(0, 79, 115, 0.46);
+  --nodeget-archive-amber: #004f73;
+  --nodeget-archive-green: #004f73;
+  --nodeget-archive-red: #a33147;
+  background: var(--nodeget-archive-bg);
+}
+
+html.nodeget-abyssal-theme:not(.dark) body {
+  background-color: var(--nodeget-archive-bg);
+  background-image:
+    linear-gradient(var(--nodeget-archive-grain-wash), var(--nodeget-archive-grain-wash)),
+    url("./assets/grain.png"),
+    radial-gradient(circle at 18% 12%, rgba(0, 79, 115, 0.055), transparent 22rem),
+    radial-gradient(circle at 78% 30%, rgba(0, 79, 115, 0.042), transparent 28rem),
+    linear-gradient(180deg, #fdfdf8 0%, #f5f8f2 100%);
+  background-position: center, left top, 18% 12%, 78% 30%, center;
+  background-size: auto, 256px 256px, cover, cover, cover;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: normal, multiply, multiply, multiply, normal;
+  color: var(--nodeget-archive-text);
+}
+
+html.nodeget-abyssal-theme:not(.dark) header {
+  background-color: rgba(251, 251, 246, 0.86) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: saturate(0.94) blur(2px) !important;
+  backdrop-filter: saturate(0.94) blur(2px) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) header a[href="./"],
+html.nodeget-abyssal-theme:not(.dark) header button,
+html.nodeget-abyssal-theme:not(.dark) header a[role="button"],
+html.nodeget-abyssal-theme:not(.dark) header [role="combobox"] {
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) header .relative.inline-grid > div[aria-hidden],
+html.nodeget-abyssal-theme:not(.dark) header button:hover,
+html.nodeget-abyssal-theme:not(.dark) header a[role="button"]:hover,
+html.nodeget-abyssal-theme:not(.dark) header [role="combobox"]:hover {
+  background-color: rgba(0, 79, 115, 0.07) !important;
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) main > .flex.flex-wrap {
+  border-top-color: var(--nodeget-archive-border) !important;
+  border-bottom-color: var(--nodeget-archive-border) !important;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) main > .flex.flex-wrap > button {
+  border-left-color: rgba(0, 79, 115, 0.14) !important;
+  background: transparent !important;
+  color: var(--nodeget-archive-muted) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) main > .flex.flex-wrap > button:hover,
+html.nodeget-abyssal-theme:not(.dark) main > .flex.flex-wrap > button.bg-primary,
+html.nodeget-abyssal-theme:not(.dark) main > .flex.flex-wrap > button[class*="bg-primary"] {
+  border-left-color: var(--nodeget-archive-border-strong) !important;
+  background: rgba(0, 79, 115, 0.075) !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow: inset 0 -1px 0 rgba(0, 79, 115, 0.08) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card::before {
+  color: var(--nodeget-archive-muted);
+  border-top-color: var(--nodeget-archive-border);
+  border-bottom-color: var(--nodeget-archive-border);
+  background: transparent;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card > div,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card:hover > div {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card > div {
+  transition:
+    outline-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card:is(:focus-visible, :focus-within) > div {
+  background-color: color-mix(in srgb, var(--nodeget-archive-panel-hover) 28%, transparent) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 42%),
+    repeating-linear-gradient(0deg, var(--nodeget-archive-grain-wash) 0 1px, transparent 1px 1.72rem) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--nodeget-archive-border-strong),
+    inset 0 1.54rem 0 color-mix(in srgb, var(--nodeget-archive-border) 22%, transparent) !important;
+  outline-color: var(--nodeget-archive-border-strong);
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card:is(:focus-visible, :focus-within)::before {
+  color: var(--nodeget-archive-text);
+  border-top-color: var(--nodeget-archive-border-strong);
+  border-bottom-color: var(--nodeget-archive-border-strong);
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card:hover > div {
+  background-color: color-mix(in srgb, var(--nodeget-archive-panel-hover) 28%, transparent) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 42%),
+    repeating-linear-gradient(0deg, var(--nodeget-archive-grain-wash) 0 1px, transparent 1px 1.72rem) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--nodeget-archive-border-strong),
+    inset 0 1.54rem 0 color-mix(in srgb, var(--nodeget-archive-border) 22%, transparent) !important;
+  outline-color: var(--nodeget-archive-border-strong);
+}
+
+html.nodeget-abyssal-theme .nodeget-archive-card:hover::before {
+  color: var(--nodeget-archive-text);
+  border-top-color: var(--nodeget-archive-border-strong);
+  border-bottom-color: var(--nodeget-archive-border-strong);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card span.font-semibold {
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-front-flag,
+html.nodeget-abyssal-theme:not(.dark) header img {
+  filter: grayscale(1) contrast(1.08) sepia(1) hue-rotate(160deg) saturate(2.1) brightness(0.96) !important;
+  mix-blend-mode: multiply;
+  box-shadow: none;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .text-muted-foreground,
+html.nodeget-abyssal-theme:not(.dark) [class*="text-muted-foreground"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card svg {
+  color: var(--nodeget-archive-muted) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-card-metric-grid > div::before,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card > div > div:nth-child(3) > div::before {
+  background: var(--nodeget-archive-text);
+}
+
+html.nodeget-abyssal-theme:not(.dark) [role="progressbar"],
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-secondary"] {
+  background: rgba(0, 79, 115, 0.09) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card [role="progressbar"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card [class*="bg-secondary"] {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.11) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    ) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-archive-card [role="progressbar"]::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.88) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--nodeget-archive-text);
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table thead {
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table thead th {
+  border-bottom-color: rgba(0, 79, 115, 0.16) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td,
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table th {
+  border-bottom-color: rgba(0, 79, 115, 0.12) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table th,
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table th:first-child {
+  color: var(--nodeget-archive-faint) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:first-child::before {
+  color: rgba(0, 79, 115, 0.72);
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(2) {
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(4) [class*="border"],
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(4) [class*="Badge"],
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(4) [class*="badge"] {
+  border-color: rgba(0, 79, 115, 0.26) !important;
+  background: rgba(0, 79, 115, 0.045) !important;
+  color: rgba(0, 79, 115, 0.78) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(8),
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(9),
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table td:nth-child(10),
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table [role="progressbar"] + span {
+  color: rgba(0, 79, 115, 0.7) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table .nodeget-front-flag,
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table img[src*="flagcdn.com/"] {
+  border-color: rgba(0, 79, 115, 0.24) !important;
+  opacity: 0.78;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table [role="progressbar"] {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.11) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    ) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table [role="progressbar"]::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.88) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table tbody tr:hover {
+  background: rgba(0, 79, 115, 0.085) !important;
+  outline-color: rgba(0, 79, 115, 0.26);
+}
+
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table tbody tr[aria-selected="true"],
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table tbody tr[data-state="selected"] {
+  background: rgba(0, 79, 115, 0.1) !important;
+  outline-color: rgba(0, 79, 115, 0.32);
+}
+
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-green"],
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-emerald"],
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-amber"] {
+  background-color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-red"],
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-rose"],
+html.nodeget-abyssal-theme:not(.dark) [class*="bg-destructive"] {
+  background-color: var(--nodeget-archive-red) !important;
+}
+
+@media (max-width: 640px) {
+  html.nodeget-abyssal-theme:not(.dark) body {
+    background-image:
+      linear-gradient(var(--nodeget-archive-grain-wash), var(--nodeget-archive-grain-wash)),
+      url("./assets/grain.png"),
+      radial-gradient(circle at 18% 8%, rgba(0, 79, 115, 0.052), transparent 18rem),
+      linear-gradient(180deg, #fdfdf8 0%, #f5f8f2 100%);
+    background-position: center, left top, 18% 8%, center;
+    background-size: auto, 192px 192px, cover, cover;
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
+    background-blend-mode: normal, multiply, multiply, normal;
+  }
+}
+
+/* Light mode refinement: keep semantic status/media while staying ink-washed. */
+html.nodeget-abyssal-theme:not(.dark) .nodeget-front-flag {
+  filter: saturate(0.46) contrast(0.94) brightness(1.05) sepia(0.08) !important;
+  mix-blend-mode: normal;
+  opacity: 0.82;
+  border-color: rgba(0, 79, 115, 0.22) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) header img:not(.nodeget-front-flag) {
+  filter: saturate(0.58) contrast(0.95) brightness(1.04) sepia(0.08) !important;
+  mix-blend-mode: normal;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-card-header span[title="在线"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-card-header span[title="ONLINE"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-card-header span[title="online"] {
+  background-color: #4f9a68 !important;
+  box-shadow: 0 0 0 2px rgba(79, 154, 104, 0.13) !important;
+  --tw-ring-color: rgba(79, 154, 104, 0.2) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-root::before {
+  background: rgba(251, 251, 246, 0.72) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(0.9) !important;
+  backdrop-filter: blur(10px) saturate(0.9) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body {
+  background: #fbfbf6 !important;
+  background-image:
+    linear-gradient(rgba(0, 79, 115, 0.012), rgba(0, 79, 115, 0.012)),
+    url("./assets/grain.png") !important;
+  background-size: auto, 220px 220px !important;
+  background-repeat: repeat, repeat !important;
+  color: var(--nodeget-archive-text) !important;
+  border-color: var(--nodeget-archive-border) !important;
+  box-shadow: -24px 0 60px rgba(0, 79, 115, 0.12) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header::before {
+  color: var(--nodeget-archive-faint) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body .card-soft,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-card"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-background"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-muted"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body section,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body article {
+  border-color: rgba(0, 79, 115, 0.2) !important;
+  background-color: rgba(251, 251, 246, 0.94) !important;
+  background-image:
+    linear-gradient(rgba(0, 79, 115, 0.018), rgba(0, 79, 115, 0.018)),
+    repeating-linear-gradient(0deg, rgba(0, 79, 115, 0.03) 0 1px, transparent 1px 1.65rem) !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 79, 115, 0.055),
+    inset 0 0 0 2px rgba(251, 251, 246, 0.72) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="text-muted-foreground"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body dl,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body table,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="grid"] {
+  color: var(--nodeget-archive-muted) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [role="progressbar"] {
+  background: rgba(0, 79, 115, 0.11) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [role="progressbar"] > div {
+  background-color: rgba(0, 79, 115, 0.78) !important;
+}
+
+/* Detail drawers should read as clean records, not ruled forms. */
+html.nodeget-abyssal-theme .nodeget-detail-drawer-header {
+  border-bottom: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body::before {
+  content: none !important;
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .card-soft,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="bg-card"],
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="bg-background"],
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="bg-muted"],
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body section,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body article,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body .card-soft,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-card"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-background"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body [class*="bg-muted"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body section,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body article {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body *,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body * {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Light mode: white paper only. No global wash/texture overlays. */
+html.nodeget-abyssal-theme:not(.dark) body {
+  background-color: #fffef9 !important;
+  background-image: none !important;
+  background-position: initial !important;
+  background-size: auto !important;
+  background-repeat: repeat !important;
+  background-blend-mode: normal !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) header {
+  background-color: #fffef9 !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .card-soft:has(table.nodeget-archive-table),
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table,
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table thead,
+html.nodeget-abyssal-theme:not(.dark) table.nodeget-archive-table tbody tr {
+  background-color: transparent !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+}
+
+/* Dark mode: keep the layered backdrop, but avoid fixed-attachment repaint seams on fast scroll. */
+html.nodeget-abyssal-theme.dark,
+html.nodeget-abyssal-theme.dark body {
+  background-color: #020f0f !important;
+}
+
+html.nodeget-abyssal-theme.dark body {
+  background-attachment: scroll !important;
+}
+
+/* Detail drawer TUI monitor pass: pane-based CLI telemetry without command spam. */
+html.nodeget-abyssal-theme .nodeget-detail-tui-root {
+  --nodeget-tui-pane-bg: rgba(3, 24, 24, 0.82);
+  --nodeget-tui-pane-bg-strong: rgba(5, 31, 30, 0.9);
+  --nodeget-tui-pane-edge: rgba(255, 230, 203, 0.2);
+  --nodeget-tui-pane-edge-soft: rgba(255, 230, 203, 0.075);
+  --nodeget-tui-label: rgba(220, 166, 75, 0.82);
+  --nodeget-tui-value: rgba(255, 239, 212, 0.94);
+}
+
+html.nodeget-abyssal-theme.dark .nodeget-detail-tui-root .nodeget-detail-drawer-header {
+  background-color: rgba(2, 15, 15, 0.34) !important;
+  background-image: linear-gradient(180deg, rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.004)) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-root .nodeget-detail-drawer-header {
+  min-height: 4.85rem;
+  padding-top: 1.45rem !important;
+  padding-bottom: 0.72rem !important;
+  background:
+    linear-gradient(90deg, rgba(220, 166, 75, 0.055), transparent 36%),
+    rgba(3, 24, 24, 0.98) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-root .nodeget-detail-drawer-header [class*="font-semibold"] {
+  font-family: var(--nodeget-font-rules-compressed), var(--nodeget-font-mono);
+  font-size: clamp(1.38rem, 2.4vw, 2.18rem) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.035em;
+  line-height: 0.96;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-root .nodeget-detail-drawer-header [class*="text-muted-foreground"] {
+  color: var(--nodeget-archive-faint) !important;
+  font-size: 0.56rem !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 0.9rem !important;
+  padding: 1rem 1rem 3.4rem !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(220, 166, 75, 0.045), transparent 34rem),
+    rgba(4, 28, 28, 0.97) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen > * {
+  grid-column: 1 / -1;
+  margin-top: 0 !important;
+  min-width: 0;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen > .nodeget-tui-pane:nth-child(1) {
+  grid-column: span 5;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen > .nodeget-tui-pane:nth-child(2) {
+  grid-column: span 7;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen > .grid {
+  gap: 0.9rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane {
+  position: relative;
+  min-width: 0;
+  padding: 0.88rem 1rem 0.95rem !important;
+  border-right-color: var(--nodeget-tui-pane-edge) !important;
+  border-left-color: var(--nodeget-tui-pane-edge) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 230, 203, 0.032), transparent 28rem),
+    var(--nodeget-tui-pane-bg) !important;
+  color: var(--nodeget-archive-muted) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane::before {
+  content: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane :is(h1, h2, h3, h4),
+html.nodeget-abyssal-theme .nodeget-tui-pane > :first-child {
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane [class*="text-2xl"],
+html.nodeget-abyssal-theme .nodeget-tui-pane [class*="text-xl"],
+html.nodeget-abyssal-theme .nodeget-tui-pane [class*="font-semibold"] {
+  color: var(--nodeget-tui-value) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane[data-nodeget-pane-label="RESOURCE"] > .flex {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  gap: 0.5rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-pane[data-nodeget-pane-label="RESOURCE"] > .flex > div {
+  flex: initial !important;
+  min-width: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: baseline !important;
+  gap: 0.14rem 0.75rem !important;
+  min-height: 4.15rem;
+  padding: 0.62rem 0.68rem 1.28rem !important;
+  border: 1px solid var(--nodeget-tui-pane-edge-soft);
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 230, 203, 0.032), transparent 75%),
+    rgba(255, 230, 203, 0.018);
+  background-size: auto, auto;
+  box-shadow: inset 0 0 0 1px rgba(2, 15, 15, 0.52);
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter::before,
+html.nodeget-abyssal-theme .nodeget-resource-meter::after {
+  content: "";
+  position: absolute;
+  right: 0.68rem;
+  bottom: 0.58rem;
+  left: 0.68rem;
+  height: 0.72rem;
+  pointer-events: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter::before {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.07) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter::after {
+  right: auto;
+  width: min(var(--nodeget-progress-width, 0px), calc(100% - 1.36rem));
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 230, 203, 0.86) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+  filter: drop-shadow(0 0 0.38rem rgba(220, 166, 75, 0.28));
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-graphic {
+  display: contents !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-graphic svg {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-value {
+  position: static !important;
+  display: block !important;
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--nodeget-tui-value) !important;
+  font-family: var(--nodeget-detail-mono);
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-align: right;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-label {
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2em !important;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-sub {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 100% !important;
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-detail-mono);
+  font-size: 0.56rem !important;
+  letter-spacing: 0.07em;
+  line-height: 1.25;
+  text-align: left;
+}
+
+html.nodeget-abyssal-theme .nodeget-tui-subpane {
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-tui-pane-edge-soft) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--nodeget-archive-muted) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  table-layout: fixed;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen th {
+  color: var(--nodeget-tui-label) !important;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen td {
+  color: var(--nodeget-archive-muted) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen tr:hover td {
+  background: rgba(255, 230, 203, 0.035) !important;
+  color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen svg text {
+  fill: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.62rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: rgba(2, 15, 15, 0.58);
+  stroke-width: 2px;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen .recharts-cartesian-grid line {
+  stroke: transparent !important;
+  stroke-dasharray: none !important;
+  stroke-linecap: square !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen :is(.recharts-wrapper, .recharts-responsive-container) {
+  font-family: var(--nodeget-detail-mono) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen :is(.recharts-area-area, .recharts-area .recharts-area-area) {
+  fill-opacity: 0.08 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen :is(.recharts-area-curve, .recharts-line-curve) {
+  stroke-linecap: square !important;
+  stroke-linejoin: miter !important;
+  stroke-width: 1.35px !important;
+  filter: drop-shadow(0 0 0.28rem rgba(255, 230, 203, 0.2));
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen .recharts-line-curve {
+  stroke-dasharray: 6 4 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen .recharts-tooltip-wrapper {
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-tui-screen .recharts-tooltip-wrapper > div {
+  border: 1px solid var(--nodeget-tui-pane-edge) !important;
+  border-radius: 0 !important;
+  background: rgba(2, 15, 15, 0.94) !important;
+  color: var(--nodeget-archive-text) !important;
+  box-shadow: 0 0 0 1px rgba(2, 15, 15, 0.74), 0 0 1rem rgba(220, 166, 75, 0.14) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-root {
+  --nodeget-tui-pane-bg: rgba(251, 251, 246, 0.96);
+  --nodeget-tui-pane-bg-strong: rgba(246, 249, 247, 0.98);
+  --nodeget-tui-pane-edge: rgba(0, 79, 115, 0.28);
+  --nodeget-tui-pane-edge-soft: rgba(0, 79, 115, 0.14);
+  --nodeget-tui-label: rgba(0, 79, 115, 0.88);
+  --nodeget-tui-value: rgba(0, 45, 68, 0.94);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-root .nodeget-detail-drawer-header {
+  background:
+    linear-gradient(90deg, rgba(0, 79, 115, 0.055), transparent 38%),
+    rgba(251, 251, 246, 0.98) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen {
+  background: #fbfbf6 !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-pane {
+  background:
+    linear-gradient(90deg, rgba(0, 79, 115, 0.032), transparent 28rem),
+    var(--nodeget-tui-pane-bg) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-subpane {
+  background:
+    linear-gradient(90deg, rgba(0, 79, 115, 0.04), transparent 60%),
+    rgba(0, 79, 115, 0.03) !important;
+  background-size: auto, auto !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen tr:hover td {
+  background: rgba(0, 79, 115, 0.05) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen .recharts-cartesian-grid line {
+  stroke: transparent !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter {
+  border-color: var(--nodeget-tui-pane-edge-soft);
+  background:
+    linear-gradient(90deg, rgba(0, 79, 115, 0.04), transparent 75%),
+    rgba(0, 79, 115, 0.028);
+  background-size: auto, auto;
+  box-shadow: inset 0 0 0 1px rgba(251, 251, 246, 0.84);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter::before {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.12) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 79, 115, 0.9) 0 var(--nodeget-segment-block, 2px),
+      transparent var(--nodeget-segment-block, 2px) var(--nodeget-segment-period, 3px)
+    );
+  filter: drop-shadow(0 0 0.28rem rgba(0, 79, 115, 0.16));
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen svg text {
+  stroke: rgba(251, 251, 246, 0.7);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen :is(.recharts-area-area, .recharts-area .recharts-area-area) {
+  fill-opacity: 0.06 !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen :is(.recharts-area-curve, .recharts-line-curve) {
+  filter: drop-shadow(0 0 0.2rem rgba(0, 79, 115, 0.16));
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen .recharts-tooltip-wrapper > div {
+  border-color: var(--nodeget-tui-pane-edge) !important;
+  background: rgba(251, 251, 246, 0.96) !important;
+  color: var(--nodeget-tui-value) !important;
+  box-shadow: 0 0 0 1px rgba(251, 251, 246, 0.8), 0 0 0.9rem rgba(0, 79, 115, 0.12) !important;
+}
+
+/* Light mode detail/resource surfaces: direct white paper, no blue wash or texture. */
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-root::before {
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-root .nodeget-detail-drawer-header,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-pane,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-subpane,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-pane[data-nodeget-pane-label="RESOURCE"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-tui-pane[data-nodeget-pane-label="RESOURCE"] > .flex > div {
+  background-color: #fffef9 !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter {
+  border-color: rgba(0, 79, 115, 0.16) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-tui-screen .recharts-tooltip-wrapper > div {
+  background: #fffef9 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 760px) {
+  html.nodeget-abyssal-theme .nodeget-detail-tui-screen {
+    grid-template-columns: 1fr;
+    gap: 0.78rem !important;
+    padding-inline: 0.72rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-tui-screen > .nodeget-tui-pane:nth-child(1),
+  html.nodeget-abyssal-theme .nodeget-detail-tui-screen > .nodeget-tui-pane:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-tui-pane {
+    padding-inline: 0.78rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-tui-pane::before {
+    content: none;
+  }
+}
+
+/* Detail drawer dossier pass: make details feel like an expanded homepage server card. */
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root {
+  --nodeget-dossier-bg: rgba(4, 28, 28, 0.72);
+  --nodeget-dossier-pane-bg: rgba(3, 24, 24, 0.34);
+  --nodeget-dossier-pane-edge: rgba(255, 230, 203, 0.16);
+  --nodeget-dossier-pane-edge-soft: rgba(255, 230, 203, 0.08);
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header {
+  min-height: 3.05rem !important;
+  padding: 0.54rem 3.8rem 0.44rem 0.95rem !important;
+  background:
+    linear-gradient(90deg, rgba(255, 230, 203, 0.04), transparent 42%),
+    rgba(3, 24, 24, 0.92) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::before {
+  content: attr(data-nodeget-detail-session) !important;
+  position: absolute;
+  top: 0.22rem;
+  left: 0.95rem;
+  right: 3.9rem;
+  overflow: hidden;
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-detail-mono);
+  font-size: 0.5rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::after {
+  content: "EXPANDED DOSSIER / LIVE RECORD" !important;
+  right: 3.75rem !important;
+  bottom: 0.52rem !important;
+  color: var(--nodeget-archive-faint) !important;
+  font-size: 0.5rem !important;
+  letter-spacing: 0.13em !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header [class*="font-semibold"] {
+  color: var(--nodeget-archive-text) !important;
+  font-family: var(--nodeget-abyssal-display-font) !important;
+  font-size: 0.96rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.085em !important;
+  line-height: 1 !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-header-flag {
+  width: 1.08rem !important;
+  height: 0.76rem !important;
+  margin-right: 0.1rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-runtime-tags {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header img:not(.nodeget-front-flag):not(.nodeget-detail-header-flag) {
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header [class*="text-muted-foreground"] {
+  color: var(--nodeget-archive-faint) !important;
+  font-family: var(--nodeget-detail-mono);
+  font-size: 0.56rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-close {
+  border-radius: 0 !important;
+  border-color: var(--nodeget-dossier-pane-edge) !important;
+  background: transparent !important;
+  color: var(--nodeget-archive-muted) !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root::-webkit-scrollbar,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen {
+  gap: 0.96rem !important;
+  padding: 0.92rem 1.5rem 1.05rem !important;
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane {
+  position: relative;
+  padding: 0.82rem 0 0.92rem !important;
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane::before {
+  content: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-dossier-pane,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body [class*="bg-card"].nodeget-detail-dossier-pane,
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-tui-subpane {
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-record-grid > .nodeget-detail-record-pane {
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-resource-meter {
+  border: 0 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane > :first-child,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane :is(h1, h2, h3, h4) {
+  color: var(--nodeget-tui-label) !important;
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1.05 !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane {
+  grid-column: span 5;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane > .flex {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.42rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter {
+  min-height: 3.62rem;
+  padding: 0.54rem 0 1.16rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter::before,
+html.nodeget-abyssal-theme .nodeget-resource-meter::after {
+  right: 0.62rem;
+  bottom: 0.48rem;
+  left: 0.62rem;
+  height: 0.72rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-label::before {
+  content: "";
+  display: inline-block;
+  width: 0.36rem;
+  height: 0.36rem;
+  margin-right: 0.42rem;
+  border-radius: 999px;
+  background: var(--nodeget-archive-amber);
+  vertical-align: 0.04rem;
+  opacity: 0.86;
+}
+
+html.nodeget-abyssal-theme .nodeget-resource-meter-label,
+html.nodeget-abyssal-theme .nodeget-resource-meter-value,
+html.nodeget-abyssal-theme .nodeget-resource-meter-sub {
+  font-family: var(--nodeget-detail-mono) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane {
+  grid-column: span 7;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane :is(.recharts-wrapper, .recharts-responsive-container) {
+  min-height: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 {
+  height: 5rem !important;
+  min-height: 0 !important;
+  overflow: hidden;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 :is(.recharts-responsive-container, .recharts-wrapper),
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 .recharts-surface {
+  height: 100% !important;
+  max-height: 5rem !important;
+  min-height: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen :is(.recharts-area-curve, .recharts-line-curve) {
+  stroke-width: 1.15px !important;
+  stroke-linecap: square !important;
+  stroke-linejoin: miter !important;
+  filter: drop-shadow(0 0 0.2rem rgba(255, 230, 203, 0.14));
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen .recharts-line-curve {
+  stroke-dasharray: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen .recharts-cartesian-axis-line,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen .recharts-cartesian-axis-tick-line {
+  stroke: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen svg text {
+  fill: var(--nodeget-archive-faint) !important;
+  font-size: 0.58rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.04em;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane {
+  grid-column: 1 / -1;
+  margin-top: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary {
+  margin-top: 0.64rem !important;
+  padding-top: 0.5rem !important;
+  border-top-color: var(--nodeget-dossier-pane-edge-soft) !important;
+  font-family: var(--nodeget-detail-mono) !important;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head,
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row {
+  display: grid !important;
+  grid-template-columns: minmax(10rem, 1.35fr) repeat(3, minmax(5rem, 0.55fr));
+  align-items: center;
+  min-width: 34rem;
+  gap: 0.4rem;
+  padding: 0.34rem 0.42rem 0.34rem 2.35rem !important;
+  color: var(--nodeget-archive-muted) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head {
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row {
+  position: relative;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row::before {
+  content: ">" attr(data-nodeget-detail-row-index);
+  position: absolute;
+  left: 0.42rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nodeget-archive-faint);
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row:hover {
+  background: rgba(255, 230, 203, 0.035) !important;
+}
+
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary {
+    margin-top: 0.52rem !important;
+    padding-top: 0.44rem !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary :is(.grid, [class*="grid"]) {
+    min-width: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head,
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row {
+    grid-template-columns: minmax(4.8rem, 1fr) minmax(4.35rem, max-content) minmax(3.6rem, max-content) minmax(3.45rem, max-content) !important;
+    min-width: max(100%, 18.9rem) !important;
+    gap: 0.28rem !important;
+    padding: 0.28rem 0.32rem 0.28rem 1.45rem !important;
+    font-size: 0.58rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head {
+    font-size: 0.5rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row::before {
+    left: 0.32rem !important;
+    font-size: 0.5rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head > *,
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row > * {
+    min-width: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head > :first-child,
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row > :first-child {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-head > :not(:first-child),
+  html.nodeget-abyssal-theme .nodeget-detail-probe-summary-row > :not(:first-child) {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table {
+  width: 100%;
+  border-collapse: collapse !important;
+  table-layout: fixed;
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table th {
+  padding: 0.34rem 0.42rem !important;
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.56rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table td {
+  padding: 0.38rem 0.42rem !important;
+  color: var(--nodeget-archive-muted) !important;
+  font-size: 0.62rem !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table tbody tr {
+  position: relative;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table tbody tr:hover td {
+  background: rgba(255, 230, 203, 0.035) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table .nodeget-detail-table-index-cell {
+  position: relative;
+  padding-left: 2.45rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-table .nodeget-detail-table-index-cell::before {
+  content: ">" attr(data-nodeget-detail-row-index);
+  position: absolute;
+  left: 0.42rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nodeget-archive-faint);
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-pane,
+html.nodeget-abyssal-theme .nodeget-detail-record-pane .nodeget-tui-subpane {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-pane dl,
+html.nodeget-abyssal-theme .nodeget-detail-record-pane [class*="grid"] {
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.64rem !important;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-grid {
+  grid-column: 1 / -1;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.82rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-grid::before,
+html.nodeget-abyssal-theme .nodeget-detail-record-grid::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane {
+  min-width: 0;
+  padding: 0.82rem 0 0.92rem !important;
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-neofetch-pane > :first-child {
+  margin-bottom: 0.28rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-row {
+  align-items: baseline !important;
+  gap: 0.6rem !important;
+  padding-block: 0.16rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-key {
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.57rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-value {
+  color: var(--nodeget-archive-text) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-row:hover {
+  background: transparent !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter {
+  min-height: 3.58rem;
+  grid-template-rows: auto auto !important;
+  align-items: start !important;
+  gap: 0.1rem 0.75rem !important;
+  padding: 0.42rem 0.04rem 0.34rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::before,
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::after {
+  top: 1.48rem;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  height: 0.84rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::after {
+  width: min(var(--nodeget-progress-width, 0px), 100%);
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter-sub {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 1.32rem !important;
+  line-height: 1.28 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter-label::before {
+  width: 0.25rem !important;
+  height: 0.25rem !important;
+  margin-right: 0.38rem !important;
+  background: rgba(255, 189, 56, 0.62) !important;
+  vertical-align: 0.06rem !important;
+  opacity: 1 !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-resource-pane .nodeget-resource-meter-label::before,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-root .nodeget-detail-resource-pane .nodeget-resource-meter-label::before {
+  background: var(--nodeget-archive-text) !important;
+  background-color: var(--nodeget-archive-text) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane > .flex {
+  gap: 0.3rem !important;
+}
+
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane > .flex {
+    padding-inline: clamp(0.58rem, 3vw, 0.9rem) !important;
+    box-sizing: border-box !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter {
+    padding: 0.38rem 0.1rem 0.32rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::before,
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::after {
+    right: 0.1rem !important;
+    left: 0.1rem !important;
+  }
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-root {
+  --nodeget-dossier-bg: #fffef9;
+  --nodeget-dossier-pane-bg: #fffef9;
+  --nodeget-dossier-pane-edge: rgba(0, 79, 115, 0.2);
+  --nodeget-dossier-pane-edge-soft: rgba(0, 79, 115, 0.12);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-screen,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-pane,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-pane,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-grid,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-pane .nodeget-tui-subpane,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-resource-meter,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-resource-pane .nodeget-resource-meter {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-grid {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-grid > .nodeget-detail-record-pane {
+  border-top-color: rgba(0, 79, 115, 0.12) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-table tbody tr:hover td,
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-probe-summary-row:hover {
+  background: rgba(0, 79, 115, 0.04) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-dossier-screen :is(.recharts-area-curve, .recharts-line-curve) {
+  filter: drop-shadow(0 0 0.18rem rgba(0, 79, 115, 0.13));
+}
+
+@media (max-width: 760px) {
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header {
+    min-height: 3.05rem !important;
+    padding-right: 3.35rem !important;
+    padding-left: 1rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::before {
+    left: 1rem !important;
+    right: 3.55rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::after {
+    content: "EXPANDED DOSSIER" !important;
+    right: 3.35rem !important;
+    max-width: 42vw;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-body {
+    width: 100% !important;
+    max-width: none !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-screen {
+    grid-template-columns: 1fr !important;
+    padding: 0.72rem 1rem 1rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-probe-pane {
+    grid-column: 1 / -1 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.56rem !important;
+    padding: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane {
+    padding: 0.78rem 0 0.82rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane > .flex {
+    gap: 0.22rem !important;
+    padding-inline: clamp(0.58rem, 3vw, 0.9rem) !important;
+    box-sizing: border-box !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter {
+    min-height: 3.4rem;
+    padding: 0.38rem 0.1rem 0.32rem !important;
+    box-sizing: border-box !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::before,
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter::after {
+    top: 1.42rem;
+    right: 0.1rem !important;
+    left: 0.1rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane .nodeget-resource-meter-sub {
+    margin-top: 1.32rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-table {
+    min-width: 42rem;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-pane {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+}
+
+/* Header/search ownership: transparent homepage header, responsive search controls, and drawer-safe stacking. */
+html.nodeget-abyssal-theme header {
+  position: relative !important;
+  top: auto !important;
+  z-index: 90 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme.nodeget-detail-drawer-pending header,
+html.nodeget-abyssal-theme.nodeget-detail-drawer-open header {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html.nodeget-abyssal-theme header::before,
+html.nodeget-abyssal-theme header::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme header > div:first-child,
+html.nodeget-abyssal-theme .nodeget-topbar-actions {
+  overflow: visible !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-topbar-actions {
+  isolation: isolate !important;
+}
+
+@media (min-width: 640px) {
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
+    display: block !important;
+    flex: 0 1 clamp(12rem, 18vw, 15.5rem) !important;
+    width: clamp(12rem, 18vw, 15.5rem) !important;
+    min-width: 12rem !important;
+    max-width: 15.5rem !important;
+    height: 2.02rem !important;
+    position: relative !important;
+    z-index: 4 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child input[type="search"] {
+    display: block !important;
+    height: 2.02rem !important;
+    padding-left: 1.95rem !important;
+    padding-right: 0.72rem !important;
+    border: 1px solid rgba(255, 230, 203, 0.14) !important;
+    background: rgba(255, 230, 203, 0.035) !important;
+    color: var(--nodeget-archive-text) !important;
+    text-transform: uppercase !important;
+  }
+
+  html.nodeget-abyssal-theme:not(.dark) .nodeget-topbar-actions > *:first-child input[type="search"] {
+    border-color: rgba(0, 79, 115, 0.18) !important;
+    background: rgba(0, 79, 115, 0.035) !important;
+  }
+}
+
+@media (max-width: 1280px) and (min-width: 640px) {
+  html.nodeget-abyssal-theme .nodeget-topbar-actions {
+    flex-wrap: nowrap !important;
+    align-content: center !important;
+    justify-content: flex-start !important;
+    row-gap: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
+    order: 0 !important;
+    flex: 0 1 clamp(12rem, 34vw, 28rem) !important;
+    width: clamp(12rem, 34vw, 28rem) !important;
+    max-width: 28rem !important;
+    min-width: 12rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child > * {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme header .relative.inline-grid {
+    margin-left: auto !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > :not(:first-child) {
+    order: 0 !important;
+  }
+}
+
+@media (max-width: 639px) {
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
+    display: none !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="SEARCH"],
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="搜索"],
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="CLOSE SEARCH"],
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="关闭搜索"] {
+    display: inline-flex !important;
+  }
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header {
+  position: relative !important;
+  min-height: var(--nodeget-detail-header-h) !important;
+  height: var(--nodeget-detail-header-h) !important;
+  max-height: var(--nodeget-detail-header-h) !important;
+  padding: 0 0.72rem 0 2.86rem !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::before,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header > * {
+  align-self: center !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header :is(.flex, [class*="gap-"]) {
+  align-items: center !important;
+  min-height: 0 !important;
+  gap: 0.34rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header :is(h1, h2, span.font-semibold, [class*="font-semibold"], .nodeget-detail-node-title) {
+  font-size: 0.78rem !important;
+  line-height: 1 !important;
+  letter-spacing: 0.065em !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  max-width: min(18rem, calc(100vw - 5.4rem)) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header .nodeget-detail-drawer-close {
+  position: absolute !important;
+  left: 0.72rem !important;
+  top: 50% !important;
+  z-index: 4 !important;
+  width: 1.42rem !important;
+  min-width: 1.42rem !important;
+  height: 1.42rem !important;
+  min-height: 1.42rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: translateY(-50%) !important;
+  order: -10 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header .nodeget-detail-drawer-close svg {
+  width: 0.82rem !important;
+  height: 0.82rem !important;
+}
+
+@media (max-width: 760px) {
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header {
+    min-height: var(--nodeget-detail-header-h-mobile) !important;
+    height: var(--nodeget-detail-header-h-mobile) !important;
+    max-height: var(--nodeget-detail-header-h-mobile) !important;
+    padding: 0 0.72rem 0 2.7rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-header :is(h1, h2, span.font-semibold, [class*="font-semibold"], .nodeget-detail-node-title) {
+    font-size: 0.74rem !important;
+    max-width: calc(100vw - 4.3rem) !important;
+  }
+}
+
+/* Reinforce: every node detail title bar variant is fully opaque. */
+html.nodeget-abyssal-theme :is(.nodeget-detail-drawer-root, .nodeget-detail-dossier-root) :is(.nodeget-detail-drawer-header, .sticky) {
+  background: var(--nodeget-detail-dark-header-bg) !important;
+  background-color: var(--nodeget-detail-dark-header-bg) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) :is(.nodeget-detail-drawer-root, .nodeget-detail-dossier-root) :is(.nodeget-detail-drawer-header, .sticky) {
+  background: var(--nodeget-detail-light-header-bg) !important;
+  background-color: var(--nodeget-detail-light-header-bg) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+/* Mobile detail page parity: full-page detail headers are opaque too. */
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme :is(.nodeget-detail-drawer-root, .nodeget-detail-dossier-root, .fixed.inset-0.z-50.bg-background) :is(.nodeget-detail-drawer-header, .sticky, [class*="top-0"]) {
+    background: var(--nodeget-detail-dark-header-bg) !important;
+    background-color: var(--nodeget-detail-dark-header-bg) !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html.nodeget-abyssal-theme:not(.dark) :is(.nodeget-detail-drawer-root, .nodeget-detail-dossier-root, .fixed.inset-0.z-50.bg-background) :is(.nodeget-detail-drawer-header, .sticky, [class*="top-0"]) {
+    background: var(--nodeget-detail-light-header-bg) !important;
+    background-color: var(--nodeget-detail-light-header-bg) !important;
+    background-image: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* User direction: SYSTEM + NETWORK / LOAD should read as one archive record, not separate dashboard cards. */
+html.nodeget-abyssal-theme .nodeget-detail-record-grid {
+  position: relative;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin-top: 0 !important;
+  padding: 0.44rem 0 0.24rem !important;
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-grid::before {
+  content: none !important;
+  display: none !important;
+  position: absolute;
+  top: 0.16rem;
+  left: 0;
+  color: var(--nodeget-archive-faint);
+  font-family: var(--nodeget-detail-mono);
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-grid::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute;
+  top: 0.44rem !important;
+  bottom: 0.32rem !important;
+  left: 50%;
+  width: 1px;
+  background: var(--nodeget-dossier-pane-edge-soft);
+  transform: translateX(-0.5px);
+  opacity: 0.78;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-record-grid > .nodeget-detail-record-pane,
+html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane {
+  min-width: 0;
+  padding: 0.28rem 1.08rem 0.18rem 0 !important;
+  border: 0 !important;
+  border-top: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-record-grid > .nodeget-detail-record-pane + .nodeget-detail-record-pane,
+html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane + .nodeget-detail-record-pane {
+  padding-right: 0 !important;
+  padding-left: 1.08rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-title {
+  min-height: 1.08rem !important;
+  margin-bottom: 0.62rem !important;
+  padding-bottom: 0 !important;
+  color: var(--nodeget-tui-label) !important;
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.62rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1 !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-row {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(4.8rem, 0.72fr) minmax(0, 1.28fr);
+  align-items: baseline !important;
+  gap: 0.72rem !important;
+  min-height: 1.28rem !important;
+  padding: 0.12rem 0 0.12rem 2.35rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--nodeget-archive-muted) !important;
+  font-family: var(--nodeget-detail-mono) !important;
+  font-size: 0.61rem !important;
+  letter-spacing: 0.055em !important;
+  line-height: 1.28 !important;
+  text-transform: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-row::before {
+  content: ">" attr(data-nodeget-detail-row-index) !important;
+  position: absolute;
+  left: 0.42rem !important;
+  top: 50% !important;
+  width: auto !important;
+  color: var(--nodeget-archive-faint) !important;
+  font-size: 0.54rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  transform: translateY(-50%) !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-key {
+  min-width: 0;
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.13em !important;
+  line-height: inherit !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-value {
+  min-width: 0;
+  color: var(--nodeget-archive-text) !important;
+  font-size: 0.62rem !important;
+  font-weight: 520 !important;
+  letter-spacing: 0.035em !important;
+  line-height: inherit !important;
+  overflow-wrap: anywhere;
+  text-align: left !important;
+  text-transform: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-record-row:hover {
+  background: rgba(255, 230, 203, 0.026) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-grid::after {
+  background: rgba(0, 79, 115, 0.12);
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-row:hover {
+  background: rgba(0, 79, 115, 0.035) !important;
+}
+
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid {
+    grid-template-columns: 1fr !important;
+    padding-top: var(--nodeget-detail-record-mobile-pad-top) !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-record-grid > .nodeget-detail-record-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-drawer-body .nodeget-detail-record-grid > .nodeget-detail-record-pane + .nodeget-detail-record-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane + .nodeget-detail-record-pane {
+    padding: 0.34rem 0 0.66rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid > .nodeget-detail-record-pane + .nodeget-detail-record-pane {
+    margin-top: 0.7rem !important;
+    border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+    padding-top: 0.92rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-row {
+    grid-template-columns: minmax(4.4rem, 0.72fr) minmax(0, 1.28fr);
+    gap: 0.55rem !important;
+    padding-left: 2.35rem !important;
+    font-size: 0.59rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-record-row::before {
+    left: 0.42rem !important;
+    width: auto !important;
+    font-size: 0.54rem !important;
+  }
+}
+
+
+/* User correction: standardize detail module rhythm and remove the lower title rule in LAST TREND. */
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen {
+  --nodeget-detail-module-gap: 0.84rem;
+  --nodeget-detail-module-pad-y: 0.72rem;
+  --nodeget-detail-module-title-gap: 0.54rem;
+  gap: var(--nodeget-detail-module-gap) !important;
+  padding: 0.84rem 1.5rem 1.08rem !important;
+  align-items: start !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-screen > * {
+  min-width: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane {
+  padding: var(--nodeget-detail-module-pad-y) 0 0.76rem !important;
+  border: 0 !important;
+  border-top: 1px solid var(--nodeget-dossier-pane-edge-soft) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane > :first-child,
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane :is(h1, h2, h3, h4):first-child {
+  display: block !important;
+  min-height: 0.72rem !important;
+  margin: 0 0 var(--nodeget-detail-module-title-gap) !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-dossier-pane > :last-child {
+  margin-bottom: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane {
+  align-self: start !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane {
+  grid-column: span 5;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane {
+  grid-column: span 7;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-resource-pane > .flex,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid {
+  margin-top: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .nodeget-tui-subpane,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .rounded-md.border,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .rounded-md[class*="bg-card"] {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  padding-top: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .grid {
+  gap: 0.58rem !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .nodeget-tui-subpane :is(.text-xs, [class*="text-xs"]):first-child,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .nodeget-tui-subpane > :first-child {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-screen {
+    --nodeget-detail-module-gap: 0.72rem;
+    --nodeget-detail-module-pad-y: 0.66rem;
+    --nodeget-detail-module-title-gap: 0.48rem;
+    grid-template-columns: 1fr !important;
+    padding: 0.72rem 1rem 1rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-resource-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-probe-pane,
+  html.nodeget-abyssal-theme .nodeget-detail-record-grid {
+    grid-column: 1 / -1 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .grid {
+    gap: 0.46rem !important;
+  }
+}
+
+/* Follow-up QA: keep detail charts and trend metrics inside the shared gutter on narrow viewports. */
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .grid > * {
+  min-width: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane :is(.text-xs, [class*="text-xs"]),
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane :is(.font-mono, [class*="font-mono"]) {
+  white-space: nowrap !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane svg,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .recharts-wrapper,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .recharts-responsive-container,
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane svg,
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane .recharts-wrapper,
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane .recharts-responsive-container {
+  max-width: 100% !important;
+}
+
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-root .nodeget-detail-drawer-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    box-sizing: border-box !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-screen {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-pane > .relative.h-60,
+  html.nodeget-abyssal-theme .nodeget-detail-dossier-pane > .relative[class*="h-"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-pane .recharts-cartesian-axis-tick text {
+    font-size: 9px !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-probe-pane .recharts-xAxis .recharts-cartesian-axis-tick:nth-of-type(even) {
+    display: none !important;
+  }
+}
+
+/* Detail dossier surfaces and light-mode status semantics stay late enough to beat broad theme rules. */
+html.nodeget-abyssal-theme.dark .nodeget-detail-drawer-body.nodeget-detail-dossier-screen {
+  background-color: #020f0f !important;
+  background-image: linear-gradient(180deg, rgba(255, 230, 203, 0.018), rgba(255, 230, 203, 0.004)) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-body.nodeget-detail-dossier-screen {
+  background-color: #fffef9 !important;
+  background-image: linear-gradient(rgba(0, 79, 115, 0.012), rgba(0, 79, 115, 0.012)) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="在线"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="ONLINE"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="online"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[class*="bg-emerald"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[class*="bg-green"] {
+  background-color: #4f9a68 !important;
+  box-shadow: 0 0 0 2px rgba(79, 154, 104, 0.13) !important;
+  --tw-ring-color: rgba(79, 154, 104, 0.2) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="离线"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="OFFLINE"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[title="offline"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[class*="bg-rose"],
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-drawer-header span[class*="bg-red"] {
+  background-color: #b86a61 !important;
+  box-shadow: 0 0 0 2px rgba(184, 106, 97, 0.13) !important;
+  --tw-ring-color: rgba(184, 106, 97, 0.2) !important;
+}
+
+/* LAST 4 SEC TREND polish: compact dossier trace rows in the public patch layer. */
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane {
+  --nodeget-trend-row-h: 2.82rem;
+  --nodeget-trend-line: rgba(255, 230, 203, 0.5);
+  --nodeget-trend-trace: rgba(255, 230, 203, 0.14);
+  --nodeget-trend-tick: rgba(255, 230, 203, 0.13);
+  --nodeget-trend-marker: rgba(255, 189, 56, 0.62);
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md.border, .rounded-md[class*="bg-card"]) {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(4.8rem, 0.58fr) minmax(4.75rem, max-content) minmax(7.5rem, 1fr);
+  align-items: center;
+  column-gap: clamp(0.42rem, 1.2vw, 0.78rem);
+  min-width: 0 !important;
+  min-height: var(--nodeget-trend-row-h);
+  padding: 0.3rem 0.18rem 0.3rem 1.02rem !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md):first-child {
+  /* Keep only the module's own top rule; trend rows no longer carry per-row dividers. */
+  box-shadow: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::before {
+  content: "";
+  position: absolute;
+  left: 0.26rem;
+  top: 50%;
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--nodeget-trend-marker);
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::after {
+  content: "";
+  position: absolute;
+  right: 0.18rem;
+  bottom: 0.34rem;
+  width: min(42%, 18rem);
+  height: 0.34rem;
+  background: repeating-linear-gradient(90deg, var(--nodeget-trend-tick) 0 1px, transparent 1px 1.18rem);
+  opacity: 0.52;
+  pointer-events: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex {
+  display: contents !important;
+  margin: 0 !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :first-child,
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :last-child {
+  min-width: 0 !important;
+  overflow: hidden;
+  font-family: var(--nodeget-detail-mono) !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :first-child {
+  grid-column: 1;
+  color: var(--nodeget-tui-label) !important;
+  font-size: 0.55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :last-child {
+  grid-column: 2;
+  color: var(--nodeget-tui-value) !important;
+  font-size: 0.64rem !important;
+  letter-spacing: 0.04em !important;
+  text-align: right;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 {
+  position: relative;
+  z-index: 1;
+  grid-column: 3;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 2.18rem !important;
+  max-height: 2.18rem !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem 0 0.18rem;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, transparent calc(50% - 0.5px), var(--nodeget-trend-trace) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    repeating-linear-gradient(90deg, var(--nodeget-trend-tick) 0 1px, transparent 1px 25%);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 :is(.recharts-responsive-container, .recharts-wrapper, .recharts-surface) {
+  position: relative;
+  z-index: 1;
+  height: 100% !important;
+  max-height: 2.18rem !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane :is(.recharts-area-curve, .recharts-line-curve) {
+  stroke: var(--nodeget-trend-line) !important;
+  stroke-width: 1.05px !important;
+  stroke-dasharray: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  filter: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .recharts-area-area {
+  opacity: 0.055 !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-telemetry-pane {
+  --nodeget-trend-line: rgba(0, 79, 115, 0.54);
+  --nodeget-trend-trace: rgba(0, 79, 115, 0.15);
+  --nodeget-trend-tick: rgba(0, 79, 115, 0.16);
+  --nodeget-trend-marker: rgba(0, 79, 115, 0.72);
+}
+
+@media (max-width: 520px) {
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane {
+    --nodeget-trend-row-h: 2.62rem;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md.border, .rounded-md[class*="bg-card"]) {
+    grid-template-columns: minmax(3.7rem, 0.7fr) minmax(3.85rem, 0.8fr) minmax(0, 1.25fr);
+    column-gap: 0.34rem;
+    padding: 0.28rem 0 0.28rem 0.74rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::before {
+    left: 0.14rem;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::after {
+    right: 0;
+    width: 48%;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :first-child {
+    font-size: 0.5rem !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md) > .flex > :last-child {
+    font-size: 0.56rem !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20,
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane .h-20 :is(.recharts-responsive-container, .recharts-wrapper, .recharts-surface) {
+    height: 2rem !important;
+    max-height: 2rem !important;
+  }
+}
+
+/* User correction: on mobile, align LAST TREND labels/traces with RESOURCE text and segmented bars. */
+@media (max-width: 767px) {
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid {
+    padding-inline: clamp(0.58rem, 3vw, 0.9rem) !important;
+    box-sizing: border-box !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md.border, .rounded-md[class*="bg-card"]) {
+    padding: 0.28rem 0.1rem 0.28rem 0.68rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::before {
+    left: 0.1rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-detail-telemetry-pane > .grid > :is(.nodeget-tui-subpane, .rounded-md)::after {
+    right: 0.1rem !important;
+  }
+}
+
+/* Light-mode detail dividers: keep SYSTEM and Ping/TCP section rules visible on white paper. */
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-record-grid {
+  border-top: 1px solid var(--nodeget-detail-light-divider) !important;
+}
+
+html.nodeget-abyssal-theme:not(.dark) .nodeget-detail-probe-summary {
+  border-top: 1px solid var(--nodeget-detail-light-divider) !important;
+}
+
+/* Detail latency chart tooltips: keep hover layers above drawer panels. */
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane {
+  position: relative !important;
+  z-index: 8 !important;
+  overflow: visible !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane > .relative.h-60,
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane > .relative[class*="h-"] {
+  position: relative !important;
+  z-index: 20 !important;
+  overflow: visible !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane :is(.recharts-responsive-container, .recharts-wrapper, .recharts-surface) {
+  overflow: visible !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-detail-probe-pane .recharts-tooltip-wrapper {
+  z-index: 120 !important;
+  pointer-events: none !important;
+}

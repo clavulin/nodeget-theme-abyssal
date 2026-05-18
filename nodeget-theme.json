@@ -1,0 +1,35 @@
+{
+  "name": "NodeGet Abyssal Theme",
+  "short": "Abyssal",
+  "description": "Abyssal theme package for NodeGet StatusShow v1.4.",
+  "author": "clavulin",
+  "repository": "https://github.com/clavulin/nodeget-theme-abyssal",
+  "user_preferences_form": {
+    "version": "0.0.1",
+    "items": [
+      {
+        "key": "site_name",
+        "name": "站点标题",
+        "type": "string",
+        "default": "Abyssal Status",
+        "help": "输入站点标题"
+      },
+      {
+        "key": "site_logo",
+        "name": "站点图标",
+        "type": "string",
+        "default": "",
+        "help": "输入站点图标链接，留空则使用默认"
+      },
+      {
+        "key": "footer",
+        "name": "页脚文本",
+        "type": "string",
+        "default": "Powered by NodeGet",
+        "help": "输入页脚文本"
+      }
+    ]
+  },
+  "version": "will be auto filled using version in package.json",
+  "license": "AGPL-3.0-only"
+}

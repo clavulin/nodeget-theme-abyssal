@@ -1,0 +1,44 @@
+# Abyssal
+
+一款为 NodeGet 设计的深海幽蓝主题。
+
+## 演示站
+
+https://www.dmit.li
+
+## 安装
+
+1. 在本仓库 GitHub Release 下载 `NodeGet-Abyssal-Theme.zip`。
+2. 打开 NodeGet-Board 后台，进入 `Dashboard -> 主题管理`。
+3. 点击「从本地上传」，选择下载的 ZIP。
+4. 确认主题名称为 `NodeGet Abyssal Theme`，然后创建并上传。
+5. 进入主题详情，填写站点标题、页脚、visitor token 等配置。
+6. 回到主题列表，打开 Abyssal 的「是否启用」开关。
+
+启用后访问你的 NodeGet 后端根域名：
+
+```text
+https://你的后端域名/
+```
+
+未启用时可用静态路径预览：
+
+```text
+https://你的后端域名/nodeget/static/theme_Abyssal/index.html
+```
+
+## 更新
+
+1. 下载新版 `NodeGet-Abyssal-Theme.zip`。
+2. 在主题列表中找到 Abyssal。
+3. 选择「从本地重新上传」并上传新版 ZIP。
+
+更新时建议保留旧的 `site_tokens` 和用户配置，避免覆盖你自己的后端 token。
+
+## 许可证
+
+AGPL-3.0-only。详见 [LICENSE](LICENSE)。
+
+## 鸣谢
+
+本主题基于 [NodeGet StatusShow](https://github.com/NodeSeekDev/NodeGet-StatusShow) 开发。

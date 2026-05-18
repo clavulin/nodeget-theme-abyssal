@@ -1,0 +1,12 @@
+{
+  "name": "nodeget-theme-abyssal",
+  "version": "1.4.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:release": "node scripts/build-release.mjs",
+    "verify:package": "node scripts/verify-theme-package.mjs",
+    "verify:package:strict": "NODEGET_THEME_STRICT_ASSET_LICENSES=1 node scripts/verify-theme-package.mjs"
+  },
+  "license": "AGPL-3.0-only"
+}
