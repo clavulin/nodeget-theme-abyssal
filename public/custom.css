@@ -3158,8 +3158,25 @@ html.nodeget-abyssal-theme .nodeget-topbar-actions {
 }
 
 @media (max-width: 639px) {
+  html.nodeget-abyssal-theme header > div:first-child {
+    min-height: 3.04rem !important;
+    align-items: center !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions {
+    min-height: 2.58rem !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+
   html.nodeget-abyssal-theme .nodeget-topbar-actions > *:first-child {
     display: none !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-topbar-actions > button,
+  html.nodeget-abyssal-theme header .relative.inline-grid {
+    min-height: 2.02rem !important;
+    flex: 0 0 auto !important;
   }
 
   html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="SEARCH"],
@@ -3167,6 +3184,23 @@ html.nodeget-abyssal-theme .nodeget-topbar-actions {
   html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="CLOSE SEARCH"],
   html.nodeget-abyssal-theme .nodeget-topbar-actions > button[aria-label="关闭搜索"] {
     display: inline-flex !important;
+  }
+
+  html.nodeget-abyssal-theme main > .flex.flex-wrap {
+    min-height: 2.5rem !important;
+    align-items: center !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-archive-card {
+    min-height: 13.5rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-card-header {
+    min-height: 2.4rem !important;
+  }
+
+  html.nodeget-abyssal-theme .nodeget-card-metric-grid {
+    min-height: 5.35rem !important;
   }
 }
 
