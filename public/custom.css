@@ -607,6 +607,7 @@ html.nodeget-abyssal-theme .nodeget-archive-card {
   position: relative;
   color: inherit;
   text-decoration: none;
+  min-height: 17.25rem;
 }
 
 html.nodeget-abyssal-theme .nodeget-archive-card::before {
