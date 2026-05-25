@@ -730,6 +730,7 @@ html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(3) > div 
   position: relative;
   display: grid;
   gap: 0.18rem;
+  min-height: 2.35rem;
   padding-block: 0.18rem;
   padding-left: 0.72rem;
   border-top: 0 !important;
