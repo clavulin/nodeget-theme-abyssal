@@ -4,9 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:assets": "node scripts/build-assets.mjs",
     "build:release": "node scripts/build-release.mjs",
     "verify:package": "node scripts/verify-theme-package.mjs",
     "verify:package:strict": "NODEGET_THEME_STRICT_ASSET_LICENSES=1 node scripts/verify-theme-package.mjs"
   },
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
 }

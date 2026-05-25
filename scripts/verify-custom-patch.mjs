@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import vm from 'node:vm'
@@ -610,4 +610,49 @@ test('light-mode detail divider CSS marker', () => {
 
 test('detail latency chart tooltip CSS marker', () => {
   assert.match(customCss, /Detail latency chart tooltips/)
+})
+
+test('veil backgrounds use image-set() with AVIF/WebP and PNG fallback', () => {
+  // Modern declaration: AVIF + WebP via image-set(), e.g. veil-top.
+  assert.match(
+    customCss,
+    /image-set\(url\("\.\/assets\/veil-top\.avif"\) type\("image\/avif"\), url\("\.\/assets\/veil-top\.webp"\) type\("image\/webp"\), url\("\.\/assets\/veil-top\.png"\)\)/,
+  )
+  // Legacy PNG fallback declaration must remain so pre-image-set() browsers still render.
+  assert.match(customCss, /Legacy PNG-only fallback/)
+  // The veil PNG references must still exist (used by the fallback block AND as the
+  // final entry inside each image-set()).
+  for (const variant of [
+    'veil-top',
+    'veil-mid',
+    'veil-deep',
+    'veil-top-r90',
+    'veil-top-r180',
+    'veil-mid-r180',
+    'veil-mid-flipx',
+    'veil-deep-r180',
+    'veil-deep-flipx',
+  ]) {
+    assert.ok(customCss.includes(`url("./assets/${variant}.png")`), `custom.css should reference ${variant}.png`)
+  }
+})
+
+test('background asset variants exist on disk for image-set fallbacks', () => {
+  const assetsDir = resolve(__dirname, '../public/assets')
+  const required = [
+    'specks.avif', 'specks.webp', 'specks.png',
+    'veil-top.avif', 'veil-top.webp', 'veil-top.png',
+    'veil-mid.avif', 'veil-mid.webp', 'veil-mid.png',
+    'veil-deep.avif', 'veil-deep.webp', 'veil-deep.png',
+    'veil-top-r90.avif', 'veil-top-r90.webp', 'veil-top-r90.png',
+    'veil-top-r180.avif', 'veil-top-r180.webp', 'veil-top-r180.png',
+    'veil-mid-r180.avif', 'veil-mid-r180.webp', 'veil-mid-r180.png',
+    'veil-mid-flipx.avif', 'veil-mid-flipx.webp', 'veil-mid-flipx.png',
+    'veil-deep-r180.avif', 'veil-deep-r180.webp', 'veil-deep-r180.png',
+    'veil-deep-flipx.avif', 'veil-deep-flipx.webp', 'veil-deep-flipx.png',
+  ]
+  for (const name of required) {
+    const path = resolve(assetsDir, name)
+    assert.ok(existsSync(path), `expected asset variant present: public/assets/${name}`)
+  }
 })
