@@ -226,6 +226,9 @@ test('critical custom.js patch-layer markers remain present', () => {
     'download\\.html',
     '提取当前主题',
     '升级到',
+    // Extension seam: deployments that rewrite flag <img> sources register
+    // matchers here so the theme stays agnostic to any specific proxy route.
+    'NODEGET_FLAG_MATCHERS',
   ]
 
   for (const marker of requiredJsMarkers) {
@@ -241,6 +244,10 @@ test('private server-order and provider filter code stays out of public patch', 
     'nodeget-server_list_all_agent_uuid',
     'nodeget-provider-filter',
     'providerChipHtml',
+    // Deployment-specific proxy routes must not be hard-coded here; the theme
+    // matches flags via the NODEGET_FLAG_MATCHERS seam, so this literal route
+    // must never leak back into custom.js.
+    '/flag/',
   ]) {
     assert.equal(customJs.includes(marker), false, `custom.js must not contain private marker: ${marker}`)
   }

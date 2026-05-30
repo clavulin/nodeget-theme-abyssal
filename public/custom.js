@@ -1101,8 +1101,20 @@
     scheduleDomFlush()
   }
 
+  // StatusShow hard-codes flagcdn.com flag URLs upstream, so the theme always
+  // recognizes those. Deployments that rewrite flag <img> sources (e.g. a
+  // same-origin proxy) register extra matchers — substrings or RegExps — on
+  // window.NODEGET_FLAG_MATCHERS, read lazily here so registration order between
+  // scripts does not matter. The theme itself stays agnostic to any proxy route.
   function isFlagImage(img) {
-    return (img.getAttribute('src') || '').includes('flagcdn.com/')
+    const src = img.getAttribute('src') || ''
+    if (src.includes('flagcdn.com/')) return true
+    const extra = window.NODEGET_FLAG_MATCHERS
+    if (!Array.isArray(extra)) return false
+    return extra.some(function (matcher) {
+      if (typeof matcher === 'string') return matcher !== '' && src.includes(matcher)
+      return !!matcher && typeof matcher.test === 'function' && matcher.test(src)
+    })
   }
 
   function hideSystemLogo(img) {
@@ -1162,7 +1174,7 @@
         })
         hideSystemLogo(logo)
 
-        const regionFlag = regionCell.querySelector('img[src*="flagcdn.com/"]')
+        const regionFlag = Array.from(regionCell.querySelectorAll('img')).find(isFlagImage)
         if (!regionFlag || nameWrap.querySelector('[data-nodeget-front-flag="true"]')) return
 
         const flag = regionFlag.cloneNode(true)
