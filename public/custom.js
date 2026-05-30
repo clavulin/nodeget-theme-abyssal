@@ -45,7 +45,18 @@
   const LATENCY_REFRESH_FLOOR_MS = 60 * 1000
   const LATENCY_INCREMENTAL_OVERLAP_MS = 2 * 60 * 1000
   const LATENCY_QUERY_TIMEOUT_MS = 18 * 1000
-  const LATENCY_QUERY_LIMIT = 20000
+  const LATENCY_QUERY_LIMIT_DEFAULT = 20000
+
+  // Cap the rows a 24h latency task_query may request so the result set stays
+  // bounded. A deployment with stricter backend query limits can lower this via
+  // window.NODEGET_LATENCY_QUERY_LIMIT; read lazily so the theme stays agnostic
+  // to any specific backend topology.
+  function latencyQueryLimit() {
+    const override = window.NODEGET_LATENCY_QUERY_LIMIT
+    return typeof override === 'number' && isFinite(override) && override > 0
+      ? Math.floor(override)
+      : LATENCY_QUERY_LIMIT_DEFAULT
+  }
 
   if (!NODEGET_CUSTOM_PATCH_TEST_MODE) {
     sanitizeUnsupportedMapView()
@@ -863,7 +874,7 @@
         .map(function (condition) {
           if (!condition || typeof condition !== 'object') return condition
           if (Array.isArray(condition.timestamp_from_to)) return { timestamp_from_to: requestWindow }
-          if (Object.prototype.hasOwnProperty.call(condition, 'limit')) return { limit: LATENCY_QUERY_LIMIT }
+          if (Object.prototype.hasOwnProperty.call(condition, 'limit')) return { limit: latencyQueryLimit() }
           return condition
         })
         .filter(function (condition) {
@@ -873,7 +884,7 @@
       if (!nextConditions.some(function (condition) {
         return condition && typeof condition === 'object' && Object.prototype.hasOwnProperty.call(condition, 'limit')
       })) {
-        nextConditions.push({ limit: LATENCY_QUERY_LIMIT })
+        nextConditions.push({ limit: latencyQueryLimit() })
       }
 
       const nextMessage = {

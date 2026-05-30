@@ -229,6 +229,9 @@ test('critical custom.js patch-layer markers remain present', () => {
     // Extension seam: deployments that rewrite flag <img> sources register
     // matchers here so the theme stays agnostic to any specific proxy route.
     'NODEGET_FLAG_MATCHERS',
+    // Extension seam: deployments with stricter backend query limits override
+    // the latency row cap here, so the private value stays out of the theme.
+    'NODEGET_LATENCY_QUERY_LIMIT',
   ]
 
   for (const marker of requiredJsMarkers) {
@@ -323,6 +326,9 @@ test('latency timing constants', () => {
   assert.match(customJs, /LATENCY_WINDOW_MS\s*=\s*24 \* 60 \* 60 \* 1000/)
   assert.match(customJs, /LATENCY_BUCKET_MS\s*=\s*5 \* 60 \* 1000/)
   assert.match(customJs, /LATENCY_REFRESH_FLOOR_MS\s*=\s*60 \* 1000/)
+  // Public default must stay generic; a stricter per-deployment cap belongs in
+  // window.NODEGET_LATENCY_QUERY_LIMIT, not hard-coded into the theme.
+  assert.match(customJs, /LATENCY_QUERY_LIMIT_DEFAULT\s*=\s*20000/)
 })
 
 test('latency parser accepts ping task_query with uuid, id, and timestamp window', () => {
