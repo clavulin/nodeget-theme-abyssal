@@ -62,10 +62,17 @@ function assertAllowedEntries(entries, label) {
   }
 }
 
-function isReleaseStaticAssetPath(entry) {
+function isGeneratedRasterVariant(entry, entries) {
+  if (!/^assets\/[^/]+\.(?:avif|webp)$/i.test(entry)) return false
+  const sourcePng = entry.replace(/\.(?:avif|webp)$/i, '.png')
+  return entries.includes(sourcePng)
+}
+
+function isReleaseStaticAssetPath(entry, entries) {
   if (entry === 'logo.png') return true
   if (entry.startsWith('linux-logo-icon/') && !entry.endsWith('/')) return true
   if (!entry.startsWith('assets/') || entry.endsWith('/')) return false
+  if (isGeneratedRasterVariant(entry, entries)) return false
   return !/^assets\/[^/]+\.(?:js|css)(?:\.map)?$/.test(entry)
 }
 
@@ -97,7 +104,8 @@ function assertReleaseAssetInventory(inventory, entries, label) {
     }
   }
 
-  const releaseAssetPaths = new Set(entries.map(normalizeEntry).filter(isReleaseStaticAssetPath))
+  const normalizedEntries = entries.map(normalizeEntry)
+  const releaseAssetPaths = new Set(normalizedEntries.filter((entry) => isReleaseStaticAssetPath(entry, normalizedEntries)))
 
   for (const path of releaseAssetPaths) {
     assert(inventoryPaths.has(path), `${label} contains release asset missing from docs/release-assets.json: ${path}`)
