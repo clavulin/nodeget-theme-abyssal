@@ -120,6 +120,7 @@ test('custom patch test API exposure', () => {
     'mergeLatencyRows',
     'downsampleLatencyRows',
     'normalizeLatencyTimestamp',
+    'compareLatencyTargets',
     'normalizeFooterVersion',
     'ensureFooterVersionElement',
     'applyFooterVersionText',
@@ -430,6 +431,28 @@ test('downsampleLatencyRows groups by 5-minute bucket and source', () => {
   assert.equal(downsampled[1].timestamp, bucketStart)
   assert.equal(downsampled[1].cron_source, 'source-b')
   assert.equal(downsampled[1].task_event_result.ping, 40)
+})
+
+test('downsampleLatencyRows orders known probe sources for legends', () => {
+  const now = 1_700_100_000_000
+  const bucketStart = Math.floor((now - HOUR) / (5 * MIN)) * (5 * MIN)
+
+  const downsampled = api.downsampleLatencyRows(
+    [
+      row({ task_id: 'gd-mobile', timestamp: bucketStart + MIN, cron_source: 'ping-广东移动', task_event_result: { ping: 90 } }),
+      row({ task_id: 'bj-telecom', timestamp: bucketStart + MIN, cron_source: '北京电信', task_event_result: { ping: 10 } }),
+      row({ task_id: 'sh-unicom', timestamp: bucketStart + MIN, cron_source: 'tcping-上海联通', task_event_result: { ping: 50 } }),
+      row({ task_id: 'bj-mobile', timestamp: bucketStart + MIN, cron_source: '北京移动', task_event_result: { ping: 30 } }),
+      row({ task_id: 'unknown', timestamp: bucketStart + MIN, cron_source: 'ZZZ', task_event_result: { ping: 100 } }),
+    ],
+    'ping',
+    now,
+  )
+
+  assert.deepEqual(
+    Array.from(downsampled, (item) => item.cron_source),
+    ['北京电信', '北京移动', 'tcping-上海联通', 'ping-广东移动', 'ZZZ'],
+  )
 })
 
 test('downsampleLatencyRows ignores unknown source rows', () => {

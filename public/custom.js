@@ -48,6 +48,20 @@
   const LATENCY_INCREMENTAL_OVERLAP_MS = 2 * 60 * 1000
   const LATENCY_QUERY_TIMEOUT_MS = 18 * 1000
   const LATENCY_QUERY_LIMIT_DEFAULT = 20000
+  const LATENCY_TARGET_ORDER = [
+    '北京电信',
+    '北京联通',
+    '北京移动',
+    '上海电信',
+    '上海联通',
+    '上海移动',
+    '广东电信',
+    '广东联通',
+    '广东移动',
+  ]
+  const LATENCY_TARGET_ORDER_INDEX = new Map(LATENCY_TARGET_ORDER.map(function (name, index) {
+    return [name, index]
+  }))
 
   // Cap the rows a 24h latency task_query may request so the result set stays
   // bounded. A deployment with stricter backend query limits can lower this via
@@ -58,6 +72,28 @@
     return typeof override === 'number' && isFinite(override) && override > 0
       ? Math.floor(override)
       : LATENCY_QUERY_LIMIT_DEFAULT
+  }
+
+  function normalizeLatencyTargetName(value) {
+    return String(value || '')
+      .trim()
+      .replace(/^(?:tcp[_-]?ping|tcping|ping)[-_\s]*/i, '')
+      .replace(/\s+/g, ' ')
+  }
+
+  function latencyTargetOrderIndex(value) {
+    const normalized = normalizeLatencyTargetName(value)
+    return LATENCY_TARGET_ORDER_INDEX.has(normalized) ? LATENCY_TARGET_ORDER_INDEX.get(normalized) : Infinity
+  }
+
+  function compareLatencyTargets(aName, bName, aAddress, bAddress) {
+    const ai = latencyTargetOrderIndex(aName)
+    const bi = latencyTargetOrderIndex(bName)
+    if (ai !== bi) return ai - bi
+
+    const nameCompare = String(aName || '').localeCompare(String(bName || ''))
+    if (nameCompare) return nameCompare
+    return String(aAddress || '').localeCompare(String(bAddress || ''))
   }
 
   if (!NODEGET_CUSTOM_PATCH_TEST_MODE) {
@@ -1206,7 +1242,7 @@
 
     return Array.from(buckets.values())
       .sort(function (a, b) {
-        return a.timestamp - b.timestamp || String(a.source).localeCompare(String(b.source))
+        return a.timestamp - b.timestamp || compareLatencyTargets(a.source, b.source)
       })
       .map(function (bucket) {
         const template = bucket.template || {}
@@ -1885,6 +1921,7 @@
       mergeLatencyRows,
       downsampleLatencyRows,
       normalizeLatencyTimestamp,
+      compareLatencyTargets,
       normalizeFooterVersion,
       ensureFooterVersionElement,
       applyFooterVersionText,
