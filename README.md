@@ -2,6 +2,10 @@
 
 一款为 NodeGet 设计的深海幽蓝主题。
 
+| 深色模式 | 浅色模式 |
+| :--: | :--: |
+| ![Abyssal 深色模式预览](docs/screenshots/dark.webp) | ![Abyssal 浅色模式预览](docs/screenshots/light.webp) |
+
 ## 演示站
 
 https://www.dmit.li
