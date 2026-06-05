@@ -980,6 +980,26 @@ html.nodeget-abyssal-theme .nodeget-card-footer-row {
   background: transparent !important;
 }
 
+html.nodeget-abyssal-theme .nodeget-card-footer-row > div,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) > div {
+  position: relative;
+  padding-left: 0.72rem;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-footer-row > div::before,
+html.nodeget-abyssal-theme .nodeget-card-footer-row span::before,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) > div::before,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) span::before {
+  content: none !important;
+  display: none !important;
+}
+
+html.nodeget-abyssal-theme .nodeget-card-footer-row svg,
+html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(4) svg {
+  flex: 0 0 auto;
+  margin-left: -1rem !important;
+}
+
 html.nodeget-abyssal-theme .nodeget-archive-card > div > div:nth-child(5) {
   padding-block: 0 0.5rem;
 }
