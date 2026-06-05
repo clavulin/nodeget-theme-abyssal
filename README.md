@@ -10,6 +10,18 @@ https://www.dmit.li
 
 适配 NodeGet StatusShow v1.4（当前 `1.4.3`）。主题以 overlay 方式套用在 StatusShow 上，StatusShow 大版本升级改动 DOM 结构时可能需要同步更新。
 
+## 与 StatusShow 的区别
+
+Abyssal 不改动 StatusShow 源码，**数据与监控功能与原版完全一致**，所有差异集中在 `public/custom.js` 与 `public/custom.css` 两个文件。在原版基础上提供：
+
+- **深海幽蓝视觉**：自定义字体、多层背景纹理，卡片/表格/页眉页脚重排，适配明暗双模式。
+- **国旗替代系统图标**：节点图标位直接展示地区国旗。
+- **服务商（Provider）筛选**：从节点名归类服务商，提供一排快捷筛选。
+- **分段式指标条**：CPU/内存/磁盘等进度条改为分段样式。
+- **节点详情抽屉**：重新设计的详情面板，对表格与记录行重新排版。
+- **延迟探针增强**：对 ping / tcp_ping 查询做缓存、合并、降采样，图例顺序确定化。
+- **页脚与文案**：风格化排版，页脚显示主题版本与所配置的站点标题/图标。
+
 ## 安装
 
 1. 在本仓库 GitHub Release 下载 `NodeGet-Abyssal-Theme.zip`。
