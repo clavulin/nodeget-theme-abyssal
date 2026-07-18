@@ -6,10 +6,6 @@
 | :--: | :--: |
 | ![Abyssal 深色模式预览](docs/screenshots/dark.webp) | ![Abyssal 浅色模式预览](docs/screenshots/light.webp) |
 
-## 演示站
-
-https://www.dmit.li
-
 ## 兼容性
 
 适配 NodeGet StatusShow v1.4（当前 `1.4.3`）。主题以 overlay 方式套用在 StatusShow 上，StatusShow 大版本升级改动 DOM 结构时可能需要同步更新。
